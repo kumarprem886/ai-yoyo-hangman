@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI-YoYo Hangman</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07091C;--surf:#0D1035;--surf2:#141840;--border:#1E2760;--border2:#2E3C80;
+  --gold:#F5C842;--blue:#4F9FFF;--teal:#2DD4BF;--red:#FB7185;--orange:#FB923C;--purple:#A78BFA;
+  --text:#E2E8FF;--text2:#7B8BB8;--text3:#3D4A70;
+  --easy:#2DD4BF;--medium:#4F9FFF;--hard:#FB923C;--expert:#FB7185;--custom:#A78BFA;
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 130% 50% at 50% -10%,rgba(79,159,255,.13) 0%,transparent 60%),
+             radial-gradient(ellipse 70% 40% at 100% 110%,rgba(167,139,250,.07) 0%,transparent 50%)}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--surf)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* ── SHARED BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;border:none;border-radius:8px;
+  padding:10px 20px;font-size:.85rem;font-weight:700;cursor:pointer;
+  letter-spacing:.4px;text-transform:uppercase;transition:all .16s;font-family:inherit}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--orange));color:#000}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 5px 18px rgba(245,200,66,.3)}
+.btn-ghost{background:transparent;border:1.5px solid var(--border2);color:var(--text2)}
+.btn-ghost:hover{border-color:var(--text);color:var(--text)}
+.btn-purple{background:linear-gradient(135deg,var(--purple),#6D28D9);color:#fff}
+.btn-purple:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(167,139,250,.3)}
+.btn:disabled{opacity:.35;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+
+/* ── BADGES ── */
+.badge{display:inline-block;border-radius:20px;padding:2px 9px;
+  font-size:.62rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase}
+.badge.easy  {background:rgba(45,212,191,.15);color:var(--easy);border:1px solid rgba(45,212,191,.3)}
+.badge.medium{background:rgba(79,159,255,.15);color:var(--medium);border:1px solid rgba(79,159,255,.3)}
+.badge.hard  {background:rgba(251,146,60,.15);color:var(--hard);border:1px solid rgba(251,146,60,.3)}
+.badge.expert{background:rgba(251,113,133,.15);color:var(--expert);border:1px solid rgba(251,113,133,.3)}
+.badge.custom{background:rgba(167,139,250,.15);color:var(--purple);border:1px solid rgba(167,139,250,.3)}
+.badge.cat   {background:rgba(255,255,255,.05);color:var(--text2);border:1px solid var(--border)}
+
+/* ══════════════════════════════════════
+   SETUP SCREEN
+══════════════════════════════════════ */
+#setup-screen{position:relative;z-index:1;display:flex;flex-direction:column;min-height:100vh}
+
+.setup-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 24px;background:rgba(13,16,53,.9);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;
+  gap:10px;flex-wrap:wrap
+}
+.logo-row{display:flex;align-items:center;gap:12px}
+.logo-row img{height:48px;filter:drop-shadow(0 0 10px rgba(245,200,66,.45))}
+.logo-fb{font-size:1.35rem;font-weight:900;
+  background:linear-gradient(135deg,var(--blue),var(--gold));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:none}
+.app-name{font-size:1.1rem;font-weight:800;color:var(--gold);letter-spacing:1.5px;text-transform:uppercase}
+.app-tag{font-size:.65rem;color:var(--text2);letter-spacing:3px;text-transform:uppercase}
+.sel-pill{display:flex;align-items:center;gap:8px;
+  background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.22);
+  border-radius:30px;padding:7px 16px}
+.sel-pill .num{font-size:1.25rem;font-weight:800;color:var(--gold);line-height:1}
+.sel-pill .lbl{font-size:.72rem;color:var(--text2)}
+
+/* Toolbar */
+.setup-toolbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 24px;gap:10px;flex-wrap:wrap;
+  background:rgba(13,16,53,.45);border-bottom:1px solid var(--border)
+}
+.tbar-l,.tbar-r{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.tbar-sep{width:1px;height:22px;background:var(--border2)}
+.tbar-lbl{font-size:.65rem;color:var(--text3);letter-spacing:1.2px;text-transform:uppercase;font-weight:700;white-space:nowrap}
+
+.pill{padding:5px 14px;border-radius:20px;border:1.5px solid var(--border2);
+  background:transparent;color:var(--text2);font-size:.75rem;font-weight:700;
+  letter-spacing:.8px;text-transform:uppercase;cursor:pointer;transition:all .14s;font-family:inherit}
+.pill:hover{border-color:var(--text2);color:var(--text)}
+.pill.active{border-color:var(--gold);color:var(--gold);background:rgba(245,200,66,.1)}
+.pill.t-ai.active   {border-color:var(--blue);  color:var(--blue);  background:rgba(79,159,255,.1)}
+.pill.t-gen.active  {border-color:var(--teal);  color:var(--teal);  background:rgba(45,212,191,.1)}
+.pill.t-cust.active {border-color:var(--purple);color:var(--purple);background:rgba(167,139,250,.1)}
+.pill.d-easy.active {border-color:var(--easy);  color:var(--easy);  background:rgba(45,212,191,.1)}
+.pill.d-med.active  {border-color:var(--medium);color:var(--medium);background:rgba(79,159,255,.1)}
+.pill.d-hard.active {border-color:var(--hard);  color:var(--hard);  background:rgba(251,146,60,.1)}
+.pill.d-exp.active  {border-color:var(--expert);color:var(--expert);background:rgba(251,113,133,.1)}
+.pill.add-cust{border-color:rgba(167,139,250,.4);color:var(--purple)}
+.pill.add-cust:hover{background:rgba(167,139,250,.12);border-color:var(--purple)}
+
+/* Grid */
+.grid-wrap{flex:1;overflow-y:auto;padding:18px 24px 120px}
+.word-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(172px,1fr));gap:10px}
+
+.word-card{
+  position:relative;overflow:hidden;
+  background:var(--surf);border:1.5px solid var(--border);
+  border-radius:12px;padding:14px 14px 14px 18px;
+  cursor:pointer;transition:all .15s;user-select:none
+}
+.word-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:3px 0 0 3px}
+.word-card.diff-easy::before  {background:var(--easy)}
+.word-card.diff-medium::before{background:var(--medium)}
+.word-card.diff-hard::before  {background:var(--hard)}
+.word-card.diff-expert::before{background:var(--expert)}
+.word-card.diff-custom::before{background:var(--custom)}
+.word-card:hover{border-color:var(--border2);background:var(--surf2);transform:translateY(-1px)}
+.word-card.sel{border-color:var(--gold);background:rgba(245,200,66,.06);
+  box-shadow:0 0 0 1px rgba(245,200,66,.25),0 4px 14px rgba(245,200,66,.08)}
+.word-card.sel:hover{transform:none}
+
+.card-check{position:absolute;top:9px;right:9px;width:20px;height:20px;
+  border-radius:50%;border:1.5px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.75rem;color:transparent;transition:all .14s}
+.word-card.sel .card-check{background:var(--gold);border-color:var(--gold);color:#000}
+.card-word{font-size:1.1rem;font-weight:800;letter-spacing:2px;
+  font-family:'Courier New',monospace;margin-bottom:4px;padding-right:22px}
+.card-len{font-size:.65rem;color:var(--text3);margin-bottom:7px}
+.card-tags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:7px}
+.card-hint{font-size:.73rem;color:var(--text2);line-height:1.4;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+.empty-state{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text3)}
+.empty-state .ei{font-size:2.8rem;margin-bottom:10px}
+
+/* Bottom bar */
+.setup-bottom{
+  position:fixed;bottom:0;left:0;right:0;z-index:50;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 24px;gap:10px;flex-wrap:wrap;
+  background:rgba(9,11,42,.96);backdrop-filter:blur(12px);
+  border-top:1px solid var(--border)
+}
+.shuffle-btn{
+  display:flex;align-items:center;gap:8px;
+  background:var(--surf2);border:1.5px solid var(--border2);
+  border-radius:8px;padding:8px 14px;cursor:pointer;
+  font-size:.78rem;color:var(--text2);transition:all .14s;font-family:inherit
+}
+.shuffle-btn:hover{border-color:var(--text);color:var(--text)}
+.shuffle-btn.on{border-color:rgba(245,200,66,.4);color:var(--gold);background:rgba(245,200,66,.08)}
+.tog{width:30px;height:16px;background:var(--border2);border-radius:8px;
+  position:relative;transition:background .15s;flex-shrink:0}
+.tog::after{content:'';position:absolute;top:2px;left:2px;width:12px;height:12px;
+  background:var(--text2);border-radius:50%;transition:all .15s}
+.shuffle-btn.on .tog{background:var(--gold)}
+.shuffle-btn.on .tog::after{transform:translateX(14px);background:#000}
+
+.play-btn{display:flex;align-items:center;gap:8px;
+  background:linear-gradient(135deg,var(--gold),var(--orange));
+  color:#000;border:none;border-radius:10px;
+  padding:12px 26px;font-size:.95rem;font-weight:800;
+  cursor:pointer;letter-spacing:.8px;text-transform:uppercase;
+  transition:all .16s;white-space:nowrap;font-family:inherit}
+.play-btn:hover{transform:translateY(-2px);box-shadow:0 6px 22px rgba(245,200,66,.35)}
+.play-btn:disabled{opacity:.3;cursor:not-allowed;transform:none;box-shadow:none}
+.play-badge{background:rgba(0,0,0,.25);border-radius:20px;padding:2px 8px;font-size:.82rem}
+
+/* ══════════════════════════════════════
+   GAME SCREEN
+══════════════════════════════════════ */
+#game-screen{display:none;position:relative;z-index:1;flex-direction:column;min-height:100vh}
+#game-screen.visible{display:flex}
+
+.game-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 22px;gap:10px;flex-wrap:wrap;
+  background:rgba(13,16,53,.92);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border)
+}
+.back-btn{display:flex;align-items:center;gap:5px;
+  background:transparent;border:1.5px solid var(--border2);
+  border-radius:8px;padding:6px 13px;
+  color:var(--text2);font-size:.78rem;font-weight:600;
+  cursor:pointer;transition:all .14s;font-family:inherit;white-space:nowrap}
+.back-btn:hover{border-color:var(--text);color:var(--text)}
+
+.progress-center{display:flex;align-items:center;gap:8px;flex:1;justify-content:center;overflow:hidden}
+.pdots{display:flex;gap:5px;align-items:center;flex-wrap:wrap;justify-content:center;max-width:300px}
+.pdot{width:10px;height:10px;border-radius:50%;background:var(--border2);
+  transition:all .18s;cursor:pointer;flex-shrink:0}
+.pdot:hover{background:var(--border2);transform:scale(1.2)}
+.pdot.active{background:var(--gold);box-shadow:0 0 6px var(--gold);transform:scale(1.35)}
+.pdot.won   {background:var(--teal)}
+.pdot.lost  {background:var(--red)}
+.pdot.skipped{background:var(--text3)}
+.prog-lbl{font-size:.76rem;font-weight:700;color:var(--text2);white-space:nowrap}
+
+.nav-row{display:flex;gap:6px}
+.nav-btn{background:var(--surf2);border:1.5px solid var(--border2);border-radius:8px;
+  padding:6px 14px;color:var(--text2);font-size:.78rem;font-weight:700;
+  cursor:pointer;transition:all .14s;white-space:nowrap;font-family:inherit}
+.nav-btn:hover{border-color:var(--gold);color:var(--gold)}
+.nav-btn:disabled{opacity:.28;cursor:not-allowed}
+
+.score-strip{display:flex;justify-content:center;gap:32px;
+  padding:7px 24px;background:rgba(13,16,53,.5);border-bottom:1px solid var(--border)}
+.ss .val{font-size:1.2rem;font-weight:800;text-align:center;line-height:1}
+.ss .lbl{font-size:.58rem;color:var(--text2);letter-spacing:2px;text-transform:uppercase;text-align:center}
+.ss.w .val{color:var(--teal);text-shadow:0 0 8px var(--teal)}
+.ss.l .val{color:var(--red); text-shadow:0 0 8px var(--red)}
+.ss.s .val{color:var(--gold);text-shadow:0 0 8px var(--gold)}
+
+.game-body{flex:1;display:flex;gap:22px;padding:22px 26px 20px;
+  max-width:960px;margin:0 auto;width:100%;align-items:flex-start}
+
+/* Hangman */
+.hm-col{flex:0 0 200px;display:flex;flex-direction:column;align-items:center;gap:10px}
+#hm-canvas{border:1px solid var(--border);border-radius:14px;
+  background:rgba(13,16,53,.92);width:200px;height:228px;display:block;
+  box-shadow:inset 0 0 28px rgba(0,0,0,.4),0 0 14px rgba(79,159,255,.06)}
+.lives{display:flex;gap:2px;font-size:.95rem}
+.wrong-stat{font-size:.74rem;color:var(--text2)}
+.wrong-stat em{color:var(--red);font-weight:700;font-style:normal}
+.wchips{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;max-width:198px;min-height:20px}
+.wchip{background:rgba(251,113,133,.12);border:1px solid rgba(251,113,133,.35);
+  color:var(--red);border-radius:5px;padding:1px 6px;font-size:.76rem;font-weight:700}
+
+/* Word panel */
+.wp{flex:1;display:flex;flex-direction:column;gap:15px}
+.word-meta{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+
+.reveal-btn{display:flex;align-items:center;gap:10px;width:100%;
+  background:rgba(167,139,250,.07);border:1.5px dashed rgba(167,139,250,.38);
+  border-radius:10px;padding:11px 16px;color:var(--purple);
+  font-size:.86rem;font-weight:600;cursor:pointer;transition:all .17s;font-family:inherit}
+.reveal-btn:hover{background:rgba(167,139,250,.14);border-color:var(--purple)}
+.reveal-btn.shown{background:rgba(45,212,191,.07);border-color:rgba(45,212,191,.4);
+  color:var(--teal);cursor:default;border-style:solid}
+
+.word-display{display:flex;flex-wrap:wrap;gap:7px;align-items:flex-end;min-height:54px}
+.lbox{width:40px;height:50px;border-bottom:3px solid rgba(245,200,66,.4);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.4rem;font-weight:800;text-transform:uppercase;transition:all .2s}
+.lbox.rev{color:var(--teal);border-color:var(--teal);text-shadow:0 0 8px var(--teal);animation:pop .22s ease}
+.lbox.ans{color:var(--red);border-color:var(--red)}
+@keyframes pop{0%{transform:scale(.4);opacity:0}65%{transform:scale(1.18)}100%{transform:scale(1);opacity:1}}
+
+.keyboard{display:flex;flex-direction:column;gap:5px}
+.krow{display:flex;gap:5px;justify-content:center}
+.kkey{width:40px;height:40px;border:1.5px solid var(--border);border-radius:8px;
+  background:var(--surf2);color:var(--text);font-size:.88rem;font-weight:700;
+  cursor:pointer;transition:all .12s;display:flex;align-items:center;justify-content:center;
+  user-select:none;font-family:inherit}
+.kkey:hover:not(:disabled){border-color:var(--gold);color:var(--gold);
+  background:rgba(245,200,66,.1);transform:translateY(-2px)}
+.kkey.correct{background:rgba(45,212,191,.12);border-color:rgba(45,212,191,.5);color:var(--teal);cursor:not-allowed}
+.kkey.wrong  {background:rgba(251,113,133,.06);border-color:rgba(251,113,133,.18);color:rgba(251,113,133,.3);cursor:not-allowed}
+.kkey:disabled{cursor:not-allowed;transform:none}
+
+/* ══════════════════════════════════════
+   MODALS / OVERLAYS
+══════════════════════════════════════ */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);
+  z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(5px)}
+.overlay.open{display:flex}
+.mbox{background:var(--surf);border:1px solid var(--border2);border-radius:20px;
+  padding:34px 30px;max-width:420px;width:92%;text-align:center;
+  animation:mIn .25s cubic-bezier(.34,1.56,.64,1);position:relative;overflow:hidden}
+.mbox::before{content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at top,rgba(79,159,255,.07),transparent 60%)}
+@keyframes mIn{from{transform:scale(.72) translateY(18px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.micon{font-size:3rem;margin-bottom:8px}
+.mtitle{font-size:1.55rem;font-weight:900;margin-bottom:7px;letter-spacing:.4px}
+.mword{font-size:1.45rem;font-weight:900;color:var(--gold);letter-spacing:5px;
+  margin:11px 0;text-shadow:0 0 12px rgba(245,200,66,.4)}
+.mhint{font-size:.82rem;color:var(--text2);margin-bottom:20px;font-style:italic}
+.mbtns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.m-win  .mtitle{color:var(--teal);text-shadow:0 0 16px var(--teal)}
+.m-lose .mtitle{color:var(--red); text-shadow:0 0 16px var(--red)}
+
+/* Custom word modal */
+.cw-mbox{text-align:left;max-width:440px}
+.cw-mbox .mtitle{text-align:center;color:var(--purple);text-shadow:0 0 14px var(--purple)}
+.cw-sub{text-align:center;color:var(--text2);font-size:.8rem;margin-bottom:18px;margin-top:3px}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.field label{font-size:.68rem;color:var(--text2);letter-spacing:1px;text-transform:uppercase;font-weight:700}
+.field input{background:rgba(255,255,255,.04);border:1.5px solid var(--border);
+  border-radius:8px;padding:11px 13px;color:var(--text);font-size:.92rem;
+  outline:none;transition:border-color .15s;font-family:inherit}
+.field input:focus{border-color:var(--purple);box-shadow:0 0 6px rgba(167,139,250,.2)}
+.field input::placeholder{color:var(--text3);font-size:.82rem}
+.field.wf input{letter-spacing:2px;text-transform:uppercase;font-weight:700}
+.fcount{font-size:.65rem;color:var(--text3);text-align:right}
+.ferr{font-size:.76rem;color:var(--red);text-align:center;min-height:16px}
+
+/* Session complete */
+.sc-stats{display:flex;gap:24px;justify-content:center;margin:14px 0 20px}
+.sc-stat .sv{font-size:2.2rem;font-weight:900;line-height:1}
+.sc-stat .sl{font-size:.62rem;color:var(--text2);text-transform:uppercase;letter-spacing:1.5px}
+.sc-stat.sw .sv{color:var(--teal)}
+.sc-stat.sl2 .sv{color:var(--red)}
+
+#confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:400;display:none}
+
+/* ── Responsive ── */
+@media(max-width:640px){
+  .game-body{flex-direction:column;align-items:center;padding:14px 14px}
+  .hm-col{flex:none}
+  .kkey{width:33px;height:33px;font-size:.78rem}
+  .lbox{width:35px;height:44px;font-size:1.2rem}
+  .setup-toolbar{padding:8px 14px}
+  .grid-wrap{padding:14px 14px 120px}
+  .setup-bottom{padding:10px 14px}
+}
+</style>
+</head>
+<body>
+<canvas id="confetti-canvas"></canvas>
+
+<!-- ══════════════════════════════════════
+     SETUP SCREEN
+══════════════════════════════════════ -->
+<div id="setup-screen">
+  <div class="setup-header">
+    <div class="logo-row">
+      <img src="logo.png" alt="AI-YoYo"
+           onerror="this.style.display='none';document.getElementById('logo-fb').style.display='block'">
+      <span id="logo-fb" class="logo-fb">AI-YoYo</span>
+      <div><div class="app-name">Hangman</div><div class="app-tag">Pick your words · Then play</div></div>
+    </div>
+    <div class="sel-pill">
+      <span class="num" id="sel-count">0</span>
+      <span class="lbl">words selected</span>
+    </div>
+  </div>
+
+  <div class="setup-toolbar">
+    <div class="tbar-l">
+      <span class="tbar-lbl">Theme</span>
+      <button class="pill t-ai active" data-theme="ai">🤖 AI</button>
+      <button class="pill t-gen"       data-theme="gen">🎯 General</button>
+      <button class="pill t-cust"      data-theme="cust">✏️ Custom</button>
+      <div class="tbar-sep"></div>
+      <span class="tbar-lbl">Level</span>
+      <button class="pill active" data-diff="all">All</button>
+      <button class="pill d-easy"  data-diff="easy">Easy</button>
+      <button class="pill d-med"   data-diff="medium">Med</button>
+      <button class="pill d-hard"  data-diff="hard">Hard</button>
+      <button class="pill d-exp"   data-diff="expert">Expert</button>
+    </div>
+    <div class="tbar-r">
+      <button class="pill" id="sel-all-btn">✓ All</button>
+      <button class="pill" id="desel-btn">✕ Clear</button>
+      <button class="pill add-cust" id="add-cust-btn">+ Add Custom</button>
+    </div>
+  </div>
+
+  <div class="grid-wrap">
+    <div class="word-grid" id="word-grid"></div>
+  </div>
+
+  <div class="setup-bottom">
+    <button class="shuffle-btn" id="shuffle-btn">
+      🔀 Shuffle<div class="tog"></div>
+    </button>
+    <button class="play-btn" id="play-btn" disabled>
+      ▶ Play <span class="play-badge" id="play-count">0</span>
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     GAME SCREEN
+══════════════════════════════════════ -->
+<div id="game-screen">
+  <div class="game-header">
+    <button class="back-btn" id="back-btn">← Word Sets</button>
+    <div class="progress-center">
+      <div class="pdots" id="pdots"></div>
+      <div class="prog-lbl" id="prog-lbl">1 / 1</div>
+    </div>
+    <div class="nav-row">
+      <button class="nav-btn" id="prev-btn">◀ Prev</button>
+      <button class="nav-btn" id="next-btn">Next ▶</button>
+    </div>
+  </div>
+
+  <div class="score-strip">
+    <div class="ss w"><div class="val" id="s-wins">0</div><div class="lbl">Wins</div></div>
+    <div class="ss l"><div class="val" id="s-losses">0</div><div class="lbl">Losses</div></div>
+    <div class="ss s"><div class="val" id="s-streak">0</div><div class="lbl">Streak</div></div>
+  </div>
+
+  <div class="game-body">
+    <div class="hm-col">
+      <canvas id="hm-canvas" width="200" height="228"></canvas>
+      <div class="lives" id="lives"></div>
+      <div class="wrong-stat">Wrong: <em id="wrong-num">0</em> / 6</div>
+      <div class="wchips" id="wchips"></div>
+    </div>
+    <div class="wp">
+      <div class="word-meta">
+        <span class="badge cat" id="cat-badge">Category</span>
+        <span class="badge" id="diff-badge">Easy</span>
+      </div>
+      <button class="reveal-btn" id="reveal-btn" onclick="revealHint()">
+        <span>👁</span><span id="reveal-txt">Click to Reveal Hint</span>
+      </button>
+      <div class="word-display" id="word-display"></div>
+      <div class="keyboard">
+        <div class="krow" id="kr1"></div>
+        <div class="krow" id="kr2"></div>
+        <div class="krow" id="kr3"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Result modal ══ -->
+<div class="overlay" id="result-ov">
+  <div class="mbox" id="result-box">
+    <div class="micon" id="r-icon">🎉</div>
+    <div class="mtitle" id="r-title">Correct!</div>
+    <div class="mword"  id="r-word"></div>
+    <div class="mhint"  id="r-hint"></div>
+    <div class="mbtns">
+      <button class="btn btn-gold"  id="r-next">Next Word ▶</button>
+      <button class="btn btn-ghost" id="r-retry">Try Again</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Session complete modal ══ -->
+<div class="overlay" id="sc-ov">
+  <div class="mbox">
+    <div class="micon">🏁</div>
+    <div class="mtitle" style="color:var(--gold)">Session Complete!</div>
+    <div class="sc-stats">
+      <div class="sc-stat sw"><div class="sv" id="sc-wins">0</div><div class="sl">Wins</div></div>
+      <div class="sc-stat sl2"><div class="sv" id="sc-losses">0</div><div class="sl">Losses</div></div>
+    </div>
+    <div class="mbtns">
+      <button class="btn btn-gold"  onclick="replaySession()">Play Again 🔄</button>
+      <button class="btn btn-ghost" onclick="goSetup()">Change Words</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Custom word modal ══ -->
+<div class="overlay" id="cw-ov">
+  <div class="mbox cw-mbox">
+    <div class="micon">✏️</div>
+    <div class="mtitle">Add Custom Word</div>
+    <p class="cw-sub">Appears in your grid — select it to add it to the game.</p>
+    <div class="field wf">
+      <label>Word <span style="color:var(--text3)">(hidden as you type)</span></label>
+      <input type="password" id="cw-word" maxlength="20" autocomplete="off"
+             placeholder="Enter the word…" oninput="cwCnt()">
+      <div class="fcount"><span id="cw-len">0</span>/20</div>
+    </div>
+    <div class="field">
+      <label>Hint <span style="color:var(--text3)">(revealed on click during game)</span></label>
+      <input type="text" id="cw-hint" maxlength="120" placeholder="Enter a clue or description…">
+    </div>
+    <div class="ferr" id="cw-err"></div>
+    <div class="mbtns">
+      <button class="btn btn-purple" onclick="submitCW()">Add to Grid</button>
+      <button class="btn btn-ghost"  onclick="closeCW()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ═══════════════════════════════════════════
+//  WORD DATA
+// ═══════════════════════════════════════════
+const LIB = {
+  ai:{
+    easy:[
+      {word:"BOT",   hint:"An automated AI agent",                              cat:"AI Basics"},
+      {word:"GPU",   hint:"Chip that powers AI training at massive scale",       cat:"AI Hardware"},
+      {word:"DATA",  hint:"The fuel every AI model runs on",                    cat:"AI Basics"},
+      {word:"CODE",  hint:"What developers write to build AI",                  cat:"Programming"},
+      {word:"NODE",  hint:"A single unit in a neural network",                  cat:"Neural Networks"},
+      {word:"BIAS",  hint:"An AI fairness and ethics concern",                  cat:"AI Ethics"},
+      {word:"CHAT",  hint:"What ChatGPT famously does",                        cat:"AI Tools"},
+      {word:"DEEP",  hint:"___ Learning — AI with many hidden layers",         cat:"AI Concepts"},
+      {word:"BERT",  hint:"Google's landmark language model (2018)",            cat:"AI Models"},
+      {word:"PALM",  hint:"Google's large Pathways language model",            cat:"AI Models"},
+      {word:"GROK",  hint:"xAI's chatbot named after a Heinlein word",         cat:"AI Models"},
+      {word:"SORA",  hint:"OpenAI's text-to-video AI model",                   cat:"AI Models"},
+      {word:"LOSS",  hint:"Training metric an AI tries to minimise",           cat:"AI Training"},
+      {word:"ADAM",  hint:"Most popular neural network optimiser",             cat:"AI Training"},
+      {word:"TEXT",  hint:"Primary input type for language models",            cat:"AI Basics"},
+      {word:"GATE",  hint:"Control mechanism inside an LSTM network",          cat:"Neural Networks"},
+      {word:"API",   hint:"Interface that lets apps talk to AI services",      cat:"Programming"},
+      {word:"LLM",   hint:"Large Language Model (abbr.)",                      cat:"AI Concepts"},
+      {word:"TPU",   hint:"Google's custom AI training chip (abbr.)",          cat:"AI Hardware"},
+      {word:"CNN",   hint:"Convolutional Neural Network (abbr.)",              cat:"Neural Networks"},
+    ],
+    medium:[
+      {word:"NEURAL",   hint:"___ network — brain-inspired backbone of AI",        cat:"AI Concepts"},
+      {word:"TENSOR",   hint:"Multi-dimensional data array used in AI",            cat:"AI Math"},
+      {word:"PROMPT",   hint:"What you type to instruct an AI",                   cat:"AI Basics"},
+      {word:"PYTHON",   hint:"World's most popular AI programming language",       cat:"Programming"},
+      {word:"GEMINI",   hint:"Google DeepMind's flagship AI model",               cat:"AI Models"},
+      {word:"CLAUDE",   hint:"Anthropic's AI assistant — you're using one now!",  cat:"AI Models"},
+      {word:"LLAMA",    hint:"Meta's open-source large language model",            cat:"AI Models"},
+      {word:"OPENAI",   hint:"The company behind GPT-4 and ChatGPT",             cat:"AI Companies"},
+      {word:"NVIDIA",   hint:"GPU maker fuelling the AI revolution",              cat:"AI Hardware"},
+      {word:"COPILOT",  hint:"Microsoft's AI coding assistant",                   cat:"AI Tools"},
+      {word:"DATASET",  hint:"Curated collection used to train AI",              cat:"AI Training"},
+      {word:"CHATBOT",  hint:"AI program designed to hold conversations",        cat:"AI Tools"},
+      {word:"WEIGHTS",  hint:"Numerical parameters AI learns during training",    cat:"AI Training"},
+      {word:"SIGMOID",  hint:"S-shaped activation function (output: 0 to 1)",    cat:"AI Math"},
+      {word:"DROPOUT",  hint:"Training trick that randomly silences neurons",    cat:"AI Techniques"},
+      {word:"LATENT",   hint:"___ space — hidden compressed representation",     cat:"AI Concepts"},
+      {word:"VECTOR",   hint:"Mathematical arrow used for AI embeddings",         cat:"AI Math"},
+      {word:"WHISPER",  hint:"OpenAI's speech recognition model",                cat:"AI Models"},
+      {word:"PYTORCH",  hint:"Meta's deep learning framework",                   cat:"AI Tools"},
+      {word:"MISTRAL",  hint:"French AI company with efficient small models",    cat:"AI Companies"},
+      {word:"ENCODER",  hint:"Compresses input into a dense representation",     cat:"AI Architecture"},
+      {word:"SOFTMAX",  hint:"Converts raw scores into probabilities (sum=1)",   cat:"AI Math"},
+      {word:"COHERE",   hint:"AI company specialising in enterprise NLP",        cat:"AI Companies"},
+    ],
+    hard:[
+      {word:"FLUX",  hint:"Black Forest Labs' image AI — also means continuous change or flow",     cat:"AI Models"},
+      {word:"NUMPY", hint:"Python's core array library — the backbone of all AI computation",       cat:"AI Tools"},
+      {word:"PROXY", hint:"A smaller model approximating a larger one during training",             cat:"AI Concepts"},
+      {word:"SYNTH", hint:"Short for synthetic — AI-generated data used to train other models",    cat:"AI Training"},
+      {word:"VOCAB", hint:"The complete set of tokens a language model knows and uses",            cat:"AI Concepts"},
+      {word:"RLHF",  hint:"Training AI on human preference rankings — no vowels at all (abbr.)",   cat:"AI Techniques"},
+      {word:"GRPC",  hint:"High-performance protocol for serving ML models at scale (abbr.)",      cat:"AI Infrastructure"},
+      {word:"VLLM",  hint:"Open-source library for blazing-fast LLM inference — no vowels (abbr.)",cat:"AI Tools"},
+      {word:"JINJA", hint:"Python templating engine — the standard way to build dynamic LLM prompts",cat:"AI Tools"},
+      {word:"CHUNK", hint:"A text segment split for retrieval-augmented generation (RAG)",         cat:"AI Concepts"},
+      {word:"BYTE",  hint:"8 bits — the fundamental unit of data every AI model processes",        cat:"AI Basics"},
+      {word:"MLOPS", hint:"Applying DevOps practices to machine learning pipelines and deployment", cat:"AI Infrastructure"},
+      {word:"QWEN",  hint:"Alibaba Cloud's flagship open large language model family",             cat:"AI Models"},
+      {word:"CRON",  hint:"Time-based scheduler used to trigger automated AI pipeline runs",       cat:"AI Infrastructure"},
+      {word:"GRAPH", hint:"Data structure at the core of knowledge graphs and graph neural nets",  cat:"AI Concepts"},
+      {word:"BATCH", hint:"A group of training examples processed together in one forward pass",   cat:"AI Training"},
+      {word:"EPOCH", hint:"One complete pass through the entire training dataset",                 cat:"AI Training"},
+    ],
+    expert:[
+      {word:"BACKPROPAGATION", hint:"The algorithm that trains nets by propagating errors backward through each layer", cat:"AI Training"},
+      {word:"HALLUCINATION",   hint:"When an AI confidently states something completely and verifiably false",           cat:"AI Problems"},
+      {word:"HYPERPARAMETER",  hint:"A setting chosen before training begins — not something the model learns itself",   cat:"AI Training"},
+      {word:"QUANTIZATION",    hint:"Compressing model weights to fewer bits — makes AI smaller and faster to run",      cat:"AI Optimization"},
+      {word:"DIFFUSION",       hint:"Reverse-noise generative technique behind Stable Diffusion and DALL-E",            cat:"AI Techniques"},
+      {word:"STOCHASTIC",      hint:"Random — as in stochastic gradient descent, the most common training method",      cat:"AI Training"},
+      {word:"CONVOLUTIONAL",   hint:"Neural network layer that slides a filter across an image to detect features",     cat:"AI Architecture"},
+      {word:"PERPLEXITY",      hint:"Metric measuring how confidently a language model predicts the next token",        cat:"AI Evaluation"},
+      {word:"TOKENIZATION",    hint:"Splitting raw text into smaller tokens so the model can process it",               cat:"AI Concepts"},
+      {word:"REINFORCEMENT",   hint:"___ learning — the AI discovers best actions by receiving rewards over time",      cat:"AI Techniques"},
+      {word:"CLASSIFICATION",  hint:"Supervised ML task: assign each input to one of a set of predefined labels",      cat:"AI Techniques"},
+      {word:"TEMPERATURE",     hint:"Sampling parameter controlling randomness — 0 = precise, 2 = wildly creative",    cat:"AI Concepts"},
+      {word:"ARCHITECTURE",    hint:"The structural design of a neural network — transformer, CNN, RNN, etc.",          cat:"AI Concepts"},
+    ],
+  },
+  gen:{
+    easy:[
+      {word:"LION",  hint:"King of the jungle",                              cat:"Animals"},
+      {word:"STAR",  hint:"Shines bright in the night sky",                  cat:"Space"},
+      {word:"MOON",  hint:"Earth's natural satellite",                       cat:"Space"},
+      {word:"FIRE",  hint:"Hot, glowing, and burns things",                  cat:"Nature"},
+      {word:"RAIN",  hint:"Falls from clouds onto the ground",               cat:"Weather"},
+      {word:"FISH",  hint:"Lives underwater and breathes through gills",     cat:"Animals"},
+      {word:"TREE",  hint:"Has roots, trunk, branches, and leaves",          cat:"Nature"},
+      {word:"KING",  hint:"Ruler of a kingdom",                              cat:"Royalty"},
+      {word:"ROSE",  hint:"A thorny plant famous for its flowers",           cat:"Plants"},
+      {word:"GOLD",  hint:"Precious yellow metal used in jewellery",         cat:"Materials"},
+      {word:"WOLF",  hint:"Wild animal that howls at the moon",              cat:"Animals"},
+      {word:"BEAR",  hint:"Large furry animal that hibernates in winter",    cat:"Animals"},
+      {word:"LAKE",  hint:"Body of water surrounded by land",               cat:"Geography"},
+      {word:"SHIP",  hint:"Large vessel that sails the ocean",              cat:"Transport"},
+      {word:"DRUM",  hint:"Percussion instrument you hit with sticks",       cat:"Music"},
+      {word:"CHEF",  hint:"Professional who cooks in a restaurant",         cat:"Jobs"},
+      {word:"FROG",  hint:"Green amphibian that leaps and croaks",          cat:"Animals"},
+      {word:"RUBY",  hint:"Precious red gemstone",                           cat:"Gems"},
+      {word:"KITE",  hint:"Flies in the wind on a long string",             cat:"Toys"},
+      {word:"CAVE",  hint:"Natural underground hollow in rock",              cat:"Geography"},
+    ],
+    medium:[
+      {word:"JUNGLE", hint:"Dense tropical forest teeming with wildlife",   cat:"Geography"},
+      {word:"CASTLE", hint:"Medieval fortified building with towers",       cat:"History"},
+      {word:"BRIDGE", hint:"Structure spanning a river or gap",             cat:"Engineering"},
+      {word:"GUITAR", hint:"Six-stringed musical instrument",              cat:"Music"},
+      {word:"COFFEE", hint:"Popular hot caffeinated drink from beans",      cat:"Food"},
+      {word:"DRAGON", hint:"Legendary fire-breathing flying creature",      cat:"Mythology"},
+      {word:"FLOWER", hint:"Colourful reproductive part of a plant",       cat:"Nature"},
+      {word:"ISLAND", hint:"Land completely surrounded by water",          cat:"Geography"},
+      {word:"MONKEY", hint:"Primate with a long tail that swings in trees",cat:"Animals"},
+      {word:"PLANET", hint:"Large body that orbits a star",                cat:"Space"},
+      {word:"RABBIT", hint:"Fluffy animal with long ears and a short tail",cat:"Animals"},
+      {word:"SILVER", hint:"Shiny precious metal — second to gold",        cat:"Materials"},
+      {word:"SPIDER", hint:"Eight-legged creature that spins webs",        cat:"Animals"},
+      {word:"SUNSET", hint:"When the sun dips below the horizon in colour",cat:"Nature"},
+      {word:"WINTER", hint:"The coldest season of the year",              cat:"Seasons"},
+      {word:"PIRATE", hint:"Sea-faring adventurer of the high seas",      cat:"History"},
+      {word:"PUZZLE", hint:"A game of fitting pieces or clues together",  cat:"Games"},
+      {word:"CANDLE", hint:"A wax stick burned to give light",            cat:"Objects"},
+      {word:"FOREST", hint:"Large area of land covered by trees",         cat:"Nature"},
+      {word:"MARBLE", hint:"Smooth polished stone used in sculptures",    cat:"Materials"},
+      {word:"VIOLIN", hint:"Bowed string instrument played under the chin",cat:"Music"},
+      {word:"DESERT", hint:"Hot sandy landscape with very little rain",   cat:"Geography"},
+    ],
+    hard:[
+      {word:"RHYTHM",  hint:"The pattern of beats in music — has zero traditional vowels (A E I O U)", cat:"Music"},
+      {word:"NYMPH",   hint:"A divine spirit of nature in Greek mythology — only Y serves as a vowel", cat:"Mythology"},
+      {word:"GLYPH",   hint:"A carved or written symbol — Y is the only vowel, PH ends it",           cat:"Language"},
+      {word:"CRYPT",   hint:"An underground chamber beneath a church — Y is the only vowel",           cat:"Architecture"},
+      {word:"TRYST",   hint:"A secret meeting between lovers — find the hidden vowel to survive",     cat:"Romance"},
+      {word:"LYNX",    hint:"A wild cat with tufted ears and a stumpy tail — Y as vowel, X at the end",cat:"Animals"},
+      {word:"PSYCH",   hint:"To mentally prepare — or to trick someone. Hint: Y is the only vowel",   cat:"Mind"},
+      {word:"HYMN",    hint:"A religious song of praise — Y as vowel, and the final N is silent",     cat:"Music"},
+      {word:"PYGMY",   hint:"Describes anything exceptionally small — two Y's, zero AEIOU",           cat:"Nature"},
+      {word:"MYTHS",   hint:"Ancient stories of gods and heroes — zero traditional vowels",           cat:"Mythology"},
+      {word:"FJORD",   hint:"A narrow sea inlet flanked by steep cliffs — unusual F+J opening",       cat:"Geography"},
+      {word:"KNACK",   hint:"A natural skill or talent — the opening K is completely silent",         cat:"Ability"},
+      {word:"AWKWARD", hint:"Embarrassingly clumsy or uncomfortable — a double W lurks inside",       cat:"Emotions"},
+      {word:"COBWEB",  hint:"A dusty old spider web — C, B, W, B with only one O as the vowel",      cat:"Nature"},
+      {word:"FLUFF",   hint:"Light, soft fibres — F appears three separate times in this word",      cat:"Texture"},
+      {word:"BLUFF",   hint:"A bold deception — or a cliff face — double F, almost no common letters",cat:"Strategy"},
+      {word:"ONYX",    hint:"A gemstone with layered black and white bands — Y as vowel, X at end",  cat:"Gems"},
+      {word:"GYPSY",   hint:"A Romani traveller — two Y's, absolutely zero traditional vowels",       cat:"Culture"},
+    ],
+    expert:[
+      {word:"JAZZ",    hint:"America's great music — scientifically proven the hardest hangman word ever: J plus double Z", cat:"Music"},
+      {word:"QUIZ",    hint:"A knowledge test — second hardest by computer simulation: Q and Z together",                   cat:"Games"},
+      {word:"JINX",    hint:"A curse or source of bad luck — J and X both crammed into four letters",                      cat:"Superstition"},
+      {word:"HAJJ",    hint:"The Islamic pilgrimage to Mecca — double J, a letter most players never guess",               cat:"Religion"},
+      {word:"BUZZ",    hint:"Sound of a bee — or viral excitement — B plus double Z",                                       cat:"Sounds"},
+      {word:"FIZZ",    hint:"The sparkling bubbles in a drink — F plus double Z",                                           cat:"Food"},
+      {word:"FUZZ",    hint:"Fine soft fibres — or slang for the police — F plus double Z",                                cat:"Language"},
+      {word:"SYZYGY",  hint:"Three celestial bodies in perfect alignment (like a solar eclipse) — three Y's and a Z",      cat:"Astronomy"},
+      {word:"ZYMURGY", hint:"The science of fermentation — starts with Z, contains two Y's and zero traditional vowels",   cat:"Science"},
+      {word:"JUKEBOX", hint:"A coin-operated music machine — J, K, and X all packed into one word",                       cat:"Music"},
+      {word:"QUEUE",   hint:"A line of people waiting their turn — only two distinct letter types: Q and U/E",             cat:"Behaviour"},
+      {word:"LYMPH",   hint:"The fluid that carries immune cells around the body — Y as vowel, ends in MPH",               cat:"Biology"},
+      {word:"VOODOO",  hint:"A West African spiritual tradition — four O's lull you, then V is the killer letter",         cat:"Culture"},
+    ],
+  }
+};
+
+// ═══════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════
+let allWords    = [];
+let customWords = [];
+let selectedIds = new Set();
+let themeFilter = 'ai';
+let diffFilter  = 'all';
+let shuffleOn   = false;
+
+let gameQueue   = [];
+let queueIdx    = 0;
+let qStatus     = [];  // 'active'|'won'|'lost'|'skipped'
+let curWord='', curHint='', curCat='', curDiff='';
+let guessed=new Set(), wrongCount=0, gameOver=false, hintShown=false;
+let wins=0, losses=0, streak=0;
+
+// ═══════════════════════════════════════════
+//  BUILD FLAT LIST
+// ═══════════════════════════════════════════
+function buildLib(){
+  allWords=[];
+  ['ai','gen'].forEach(th=>{
+    ['easy','medium','hard','expert'].forEach(df=>{
+      LIB[th][df].forEach((w,i)=>{
+        allWords.push({...w, theme:th, diff:df, id:`${th}_${df}_${i}`});
+      });
+    });
+  });
+}
+
+// ═══════════════════════════════════════════
+//  SETUP SCREEN
+// ═══════════════════════════════════════════
+function visibleWords(){
+  if(themeFilter==='cust') return customWords;
+  let p=allWords.filter(w=>w.theme===themeFilter);
+  if(diffFilter!=='all') p=p.filter(w=>w.diff===diffFilter);
+  return p;
+}
+
+function renderGrid(){
+  const g=document.getElementById('word-grid');
+  const pool=visibleWords();
+  g.innerHTML='';
+  if(!pool.length){
+    g.innerHTML=`<div class="empty-state">
+      <div class="ei">${themeFilter==='cust'?'✏️':'🔍'}</div>
+      <p>${themeFilter==='cust'?'No custom words yet.<br>Click <strong>+ Add Custom</strong> to add one.':'No words match this filter.'}</p>
+    </div>`;
+    return;
+  }
+  pool.forEach(w=>{
+    const sel=selectedIds.has(w.id);
+    const d=document.createElement('div');
+    d.className=`word-card diff-${w.diff||'custom'}${sel?' sel':''}`;
+    d.dataset.id=w.id;
+    d.innerHTML=`
+      <div class="card-check">${sel?'✓':''}</div>
+      <div class="card-word">${w.word}</div>
+      <div class="card-len">${w.word.length} letters</div>
+      <div class="card-tags">
+        <span class="badge ${w.diff||'custom'}">${(w.diff||'custom').slice(0,1).toUpperCase()+(w.diff||'custom').slice(1)}</span>
+        <span class="badge cat">${w.cat}</span>
+      </div>
+      <div class="card-hint">${w.hint}</div>`;
+    d.addEventListener('click',()=>toggleWord(w.id));
+    g.appendChild(d);
+  });
+}
+
+function toggleWord(id){
+  selectedIds.has(id)?selectedIds.delete(id):selectedIds.add(id);
+  updateSelUI(); renderGrid();
+}
+
+function updateSelUI(){
+  const n=selectedIds.size;
+  document.getElementById('sel-count').textContent=n;
+  document.getElementById('play-count').textContent=n;
+  document.getElementById('play-btn').disabled=n===0;
+}
+
+// Theme / diff filter buttons
+document.querySelectorAll('[data-theme]').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('[data-theme]').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active'); themeFilter=b.dataset.theme; renderGrid();
+  });
+});
+document.querySelectorAll('[data-diff]').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('[data-diff]').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active'); diffFilter=b.dataset.diff; renderGrid();
+  });
+});
+
+document.getElementById('sel-all-btn').addEventListener('click',()=>{
+  visibleWords().forEach(w=>selectedIds.add(w.id)); updateSelUI(); renderGrid();
+});
+document.getElementById('desel-btn').addEventListener('click',()=>{
+  visibleWords().forEach(w=>selectedIds.delete(w.id)); updateSelUI(); renderGrid();
+});
+
+// Shuffle toggle
+document.getElementById('shuffle-btn').addEventListener('click',()=>{
+  shuffleOn=!shuffleOn;
+  document.getElementById('shuffle-btn').classList.toggle('on',shuffleOn);
+});
+
+// Play
+document.getElementById('play-btn').addEventListener('click',startSession);
+
+// ═══════════════════════════════════════════
+//  CUSTOM WORD MODAL
+// ═══════════════════════════════════════════
+document.getElementById('add-cust-btn').addEventListener('click',()=>{
+  ['cw-word','cw-hint'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('cw-err').textContent='';
+  document.getElementById('cw-len').textContent='0';
+  document.getElementById('cw-ov').classList.add('open');
+  setTimeout(()=>document.getElementById('cw-word').focus(),80);
+});
+function closeCW(){ document.getElementById('cw-ov').classList.remove('open'); }
+function cwCnt(){
+  document.getElementById('cw-len').textContent=
+    document.getElementById('cw-word').value.replace(/[^a-zA-Z]/g,'').length;
+}
+function submitCW(){
+  const raw=document.getElementById('cw-word').value.replace(/[^a-zA-Z]/g,'').toUpperCase();
+  const hint=document.getElementById('cw-hint').value.trim()||'(No hint provided)';
+  const err=document.getElementById('cw-err');
+  if(raw.length<2){err.textContent='Word must be at least 2 letters.';return;}
+  if(raw.length>20){err.textContent='Max 20 letters.';return;}
+  err.textContent='';
+  const id=`cust_${Date.now()}`;
+  customWords.push({word:raw,hint,cat:'Custom',diff:'custom',theme:'cust',id});
+  selectedIds.add(id);
+  closeCW();
+  // Switch to custom tab
+  document.querySelectorAll('[data-theme]').forEach(x=>x.classList.remove('active'));
+  document.querySelector('[data-theme="cust"]').classList.add('active');
+  themeFilter='cust';
+  updateSelUI(); renderGrid();
+}
+
+// ═══════════════════════════════════════════
+//  SESSION START
+// ═══════════════════════════════════════════
+function startSession(){
+  const pool=[...allWords,...customWords].filter(w=>selectedIds.has(w.id));
+  gameQueue=shuffleOn?pool.sort(()=>Math.random()-.5):[...pool];
+  queueIdx=0; qStatus=gameQueue.map(()=>'active');
+  wins=0;losses=0;streak=0; updateScoreUI();
+  document.getElementById('setup-screen').style.display='none';
+  document.getElementById('game-screen').classList.add('visible');
+  buildKeyboard(); loadWord(0);
+}
+
+function goSetup(){
+  ['sc-ov','result-ov'].forEach(id=>document.getElementById(id).classList.remove('open'));
+  document.getElementById('game-screen').classList.remove('visible');
+  document.getElementById('setup-screen').style.display='';
+  stopConfetti();
+}
+
+function replaySession(){
+  document.getElementById('sc-ov').classList.remove('open');
+  stopConfetti();
+  queueIdx=0; qStatus=gameQueue.map(()=>'active');
+  wins=0;losses=0;streak=0; updateScoreUI();
+  loadWord(0);
+}
+
+// ═══════════════════════════════════════════
+//  GAME LOGIC
+// ═══════════════════════════════════════════
+function loadWord(idx){
+  document.getElementById('result-ov').classList.remove('open');
+  stopConfetti();
+  queueIdx=idx;
+  const w=gameQueue[idx];
+  curWord=w.word; curHint=w.hint; curCat=w.cat; curDiff=w.diff||'custom';
+  guessed=new Set(); wrongCount=0; gameOver=false; hintShown=false;
+
+  const rb=document.getElementById('reveal-btn');
+  rb.classList.remove('shown');
+  document.getElementById('reveal-txt').textContent='Click to Reveal Hint';
+
+  document.getElementById('cat-badge').textContent=curCat;
+  const db=document.getElementById('diff-badge');
+  db.className='badge '+curDiff;
+  db.textContent=curDiff.slice(0,1).toUpperCase()+curDiff.slice(1);
+
+  drawHM(0); refreshWord(); refreshKB(); refreshLives(); updateProgress();
+}
+
+function guess(l){
+  if(gameOver||guessed.has(l)) return;
+  guessed.add(l);
+  if(!curWord.includes(l)) wrongCount++;
+  drawHM(wrongCount); refreshWord(); refreshKB(); refreshLives();
+  const won=[...curWord].every(c=>guessed.has(c));
+  const lost=wrongCount>=6;
+  if(won){
+    wins++;streak++;updateScoreUI();qStatus[queueIdx]='won';gameOver=true;
+    updateProgress(); setTimeout(()=>{launchConfetti();showResult(true);},380);
+  } else if(lost){
+    losses++;streak=0;updateScoreUI();qStatus[queueIdx]='lost';gameOver=true;
+    updateProgress(); refreshWord(true); setTimeout(()=>showResult(false),520);
+  }
+}
+
+function showResult(won){
+  document.getElementById('result-box').className='mbox '+(won?'m-win':'m-lose');
+  document.getElementById('r-icon').textContent=won?'🎉':'💀';
+  document.getElementById('r-title').textContent=won?'Correct!':'Game Over';
+  document.getElementById('r-word').textContent=curWord;
+  document.getElementById('r-hint').textContent=curHint;
+  const last=queueIdx>=gameQueue.length-1;
+  document.getElementById('r-next').textContent=last?'🏁 Finish':'Next Word ▶';
+  document.getElementById('result-ov').classList.add('open');
+}
+
+document.getElementById('r-next').addEventListener('click',()=>{
+  document.getElementById('result-ov').classList.remove('open'); stopConfetti();
+  if(queueIdx>=gameQueue.length-1) showSC();
+  else loadWord(queueIdx+1);
+});
+document.getElementById('r-retry').addEventListener('click',()=>{
+  document.getElementById('result-ov').classList.remove('open'); stopConfetti();
+  qStatus[queueIdx]='active'; loadWord(queueIdx);
+});
+
+function showSC(){
+  document.getElementById('sc-wins').textContent=wins;
+  document.getElementById('sc-losses').textContent=losses;
+  document.getElementById('sc-ov').classList.add('open');
+}
+
+// Prev / Next
+document.getElementById('prev-btn').addEventListener('click',()=>{
+  if(queueIdx>0){
+    if(qStatus[queueIdx]==='active') qStatus[queueIdx]='skipped';
+    loadWord(queueIdx-1);
+  }
+});
+document.getElementById('next-btn').addEventListener('click',()=>{
+  if(queueIdx<gameQueue.length-1){
+    if(qStatus[queueIdx]==='active') qStatus[queueIdx]='skipped';
+    loadWord(queueIdx+1);
+  } else showSC();
+});
+document.getElementById('back-btn').addEventListener('click',goSetup);
+
+function updateProgress(){
+  const lbl=document.getElementById('prog-lbl');
+  lbl.textContent=`${queueIdx+1} / ${gameQueue.length}`;
+  const el=document.getElementById('pdots');
+  el.innerHTML='';
+  const max=Math.min(gameQueue.length,22);
+  for(let i=0;i<max;i++){
+    const d=document.createElement('div');
+    d.className='pdot';
+    if(i===queueIdx)       d.classList.add('active');
+    else if(qStatus[i]==='won')    d.classList.add('won');
+    else if(qStatus[i]==='lost')   d.classList.add('lost');
+    else if(qStatus[i]==='skipped')d.classList.add('skipped');
+    d.title=gameQueue[i].word;
+    const ci=i;
+    d.addEventListener('click',()=>{
+      if(qStatus[queueIdx]==='active') qStatus[queueIdx]='skipped';
+      loadWord(ci);
+    });
+    el.appendChild(d);
+  }
+  if(gameQueue.length>max){
+    const s=document.createElement('span');
+    s.style.cssText='font-size:.65rem;color:var(--text3)';
+    s.textContent=`+${gameQueue.length-max}`;
+    el.appendChild(s);
+  }
+  document.getElementById('prev-btn').disabled=queueIdx===0;
+  document.getElementById('next-btn').textContent=
+    queueIdx>=gameQueue.length-1?'Finish 🏁':'Next ▶';
+}
+
+function updateScoreUI(){
+  document.getElementById('s-wins').textContent=wins;
+  document.getElementById('s-losses').textContent=losses;
+  document.getElementById('s-streak').textContent=streak;
+}
+
+function revealHint(){
+  if(hintShown) return;
+  hintShown=true;
+  document.getElementById('reveal-btn').classList.add('shown');
+  document.getElementById('reveal-txt').textContent='✅  '+curHint;
+}
+
+function refreshWord(all=false){
+  const el=document.getElementById('word-display');
+  el.innerHTML='';
+  for(const l of curWord){
+    const b=document.createElement('div');
+    b.className='lbox';
+    if(guessed.has(l))  {b.textContent=l;b.classList.add('rev');}
+    else if(all)        {b.textContent=l;b.classList.add('ans');}
+    el.appendChild(b);
+  }
+}
+
+const KBROWS=[['Q','W','E','R','T','Y','U','I','O','P'],['A','S','D','F','G','H','J','K','L'],['Z','X','C','V','B','N','M']];
+function buildKeyboard(){
+  KBROWS.forEach((row,i)=>{
+    const el=document.getElementById(`kr${i+1}`);
+    el.innerHTML='';
+    row.forEach(l=>{
+      const b=document.createElement('button');
+      b.className='kkey';b.textContent=l;b.dataset.l=l;
+      b.addEventListener('click',()=>guess(l));
+      el.appendChild(b);
+    });
+  });
+}
+function refreshKB(){
+  document.querySelectorAll('.kkey').forEach(b=>{
+    const l=b.dataset.l;
+    b.className='kkey';b.disabled=false;
+    if(guessed.has(l)){
+      b.classList.add(curWord.includes(l)?'correct':'wrong');
+      b.disabled=true;
+    }
+  });
+}
+function refreshLives(){
+  const rem=6-wrongCount;
+  document.getElementById('lives').innerHTML=
+    Array.from({length:6},(_,i)=>`<span>${i<rem?'❤️':'🖤'}</span>`).join('');
+  document.getElementById('wrong-num').textContent=wrongCount;
+  const el=document.getElementById('wchips');el.innerHTML='';
+  guessed.forEach(l=>{
+    if(!curWord.includes(l)){
+      const c=document.createElement('span');
+      c.className='wchip';c.textContent=l;el.appendChild(c);
+    }
+  });
+}
+
+// ── Hangman canvas ──
+const hmc=document.getElementById('hm-canvas');
+const hmx=hmc.getContext('2d');
+function drawHM(w){
+  hmx.clearRect(0,0,200,228);hmx.save();
+  hmx.lineCap='round';hmx.lineJoin='round';
+  hmx.strokeStyle='#F5C842';hmx.lineWidth=3.5;hmx.shadowColor='#F5C842';hmx.shadowBlur=8;
+  hmx.beginPath();hmx.moveTo(20,220);hmx.lineTo(152,220);hmx.stroke();
+  hmx.beginPath();hmx.moveTo(52,220);hmx.lineTo(52,18);hmx.stroke();
+  hmx.beginPath();hmx.moveTo(52,18);hmx.lineTo(124,18);hmx.stroke();
+  hmx.beginPath();hmx.moveTo(124,18);hmx.lineTo(124,46);hmx.stroke();
+  if(!w){hmx.restore();return;}
+  const col=w>=6?'#FB7185':'#2DD4BF';
+  hmx.strokeStyle=col;hmx.shadowColor=col;hmx.shadowBlur=12;hmx.lineWidth=3;
+  if(w>=1){
+    hmx.beginPath();hmx.arc(124,63,17,0,Math.PI*2);
+    hmx.fillStyle=w>=6?'rgba(251,113,133,.14)':'rgba(45,212,191,.07)';
+    hmx.fill();hmx.stroke();hmx.lineWidth=2;
+    if(w>=6){
+      [[118,57,122,61],[122,57,118,61],[128,57,132,61],[132,57,128,61]].forEach(([x1,y1,x2,y2])=>{
+        hmx.beginPath();hmx.moveTo(x1,y1);hmx.lineTo(x2,y2);hmx.stroke();
+      });
+      hmx.beginPath();hmx.arc(124,71,5,0,Math.PI);hmx.stroke();
+    } else {
+      hmx.fillStyle=col;
+      hmx.beginPath();hmx.arc(119,59,2,0,Math.PI*2);hmx.fill();
+      hmx.beginPath();hmx.arc(129,59,2,0,Math.PI*2);hmx.fill();
+      hmx.beginPath();hmx.arc(124,65,4,0,Math.PI);hmx.stroke();
+    }
+    hmx.lineWidth=3;
+  }
+  if(w>=2){hmx.beginPath();hmx.moveTo(124,80);hmx.lineTo(124,146);hmx.stroke();}
+  if(w>=3){hmx.beginPath();hmx.moveTo(124,98);hmx.lineTo(100,124);hmx.stroke();}
+  if(w>=4){hmx.beginPath();hmx.moveTo(124,98);hmx.lineTo(148,124);hmx.stroke();}
+  if(w>=5){hmx.beginPath();hmx.moveTo(124,146);hmx.lineTo(102,188);hmx.stroke();}
+  if(w>=6){hmx.beginPath();hmx.moveTo(124,146);hmx.lineTo(146,188);hmx.stroke();}
+  hmx.restore();
+}
+
+// ── Physical keyboard ──
+document.addEventListener('keydown',e=>{
+  const l=e.key.toUpperCase();
+  if(/^[A-Z]$/.test(l)&&document.getElementById('game-screen').classList.contains('visible'))
+    guess(l);
+  if(e.key==='Enter'&&document.getElementById('cw-ov').classList.contains('open')) submitCW();
+  if(e.key==='Escape') closeCW();
+});
+
+// ═══════════════════════════════════════════
+//  CONFETTI
+// ═══════════════════════════════════════════
+const cc=document.getElementById('confetti-canvas');
+const cctx=cc.getContext('2d');
+let cparts=[],canim=null;
+const CCOLS=['#F5C842','#FF9A3C','#4F9FFF','#2DD4BF','#FB7185','#fff','#A78BFA'];
+function launchConfetti(){
+  cc.width=window.innerWidth;cc.height=window.innerHeight;cc.style.display='block';
+  cparts=Array.from({length:110},()=>({
+    x:Math.random()*cc.width,y:-10-Math.random()*70,
+    r:4+Math.random()*5,d:2+Math.random()*3,
+    color:CCOLS[Math.floor(Math.random()*CCOLS.length)],ta:0,ts:.1+Math.random()*.15
+  }));
+  if(canim)cancelAnimationFrame(canim);
+  (function a(){
+    cctx.clearRect(0,0,cc.width,cc.height);
+    cparts.forEach(p=>{p.ta+=p.ts;p.y+=p.d;const t=Math.sin(p.ta)*12;
+      cctx.beginPath();cctx.lineWidth=p.r;cctx.strokeStyle=p.color;
+      cctx.moveTo(p.x+t+p.r/2,p.y);cctx.lineTo(p.x+t,p.y+t+p.r/2);cctx.stroke();});
+    cparts=cparts.filter(p=>p.y<cc.height+20);
+    if(cparts.length)canim=requestAnimationFrame(a);else cc.style.display='none';
+  })();
+}
+function stopConfetti(){if(canim)cancelAnimationFrame(canim);cc.style.display='none';cparts=[];}
+
+// ═══════════════════════════════════════════
+//  BOOT
+// ═══════════════════════════════════════════
+buildLib();
+renderGrid();
+updateSelUI();
+</script>
+</body>
+</html>
