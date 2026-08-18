@@ -881,9 +881,10 @@ function submitCW(){
 function startSession(){
   const pool=[...allWords,...customWords].filter(w=>selectedIds.has(w.id));
   const q=shuffleOn?pool.sort(()=>Math.random()-.5):[...pool];
-  localStorage.setItem('hangman_queue',JSON.stringify(q));
-  localStorage.setItem('hangman_teams',JSON.stringify(teams));
-  window.open(window.location.pathname+'?play','_blank');
+  const key='hm_'+Date.now();
+  localStorage.setItem(key,JSON.stringify({queue:q,teams:teams}));
+  const base=window.location.origin+window.location.pathname;
+  window.open(base+'?play='+key,'_blank');
 }
 
 function launchGameInPage(q){
@@ -1319,15 +1320,15 @@ function stopConfetti(){if(canim)cancelAnimationFrame(canim);cc.style.display='n
 //  BOOT
 // ═══════════════════════════════════════════
 buildLib();
-if(new URLSearchParams(window.location.search).has('play')){
-  // Game tab — load queue from localStorage and start immediately
-  const stored=localStorage.getItem('hangman_queue');
-  const storedTeams=localStorage.getItem('hangman_teams');
-  if(storedTeams) teams=JSON.parse(storedTeams);
-  if(stored){
-    launchGameInPage(JSON.parse(stored));
+const _params=new URLSearchParams(window.location.search);
+const _playKey=_params.get('play');
+if(_playKey){
+  const _raw=localStorage.getItem(_playKey);
+  if(_raw){
+    const _data=JSON.parse(_raw);
+    if(_data.teams) teams=_data.teams;
+    launchGameInPage(_data.queue);
   } else {
-    // fallback: show setup
     renderGrid(); updateSelUI();
   }
 } else {
