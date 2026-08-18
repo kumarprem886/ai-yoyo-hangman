@@ -195,6 +195,23 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .nav-btn:hover{border-color:var(--gold);color:var(--gold)}
 .nav-btn:disabled{opacity:.28;cursor:not-allowed}
 
+/* ── Symbol picker ── */
+.set-btn{background:var(--surf2);border:1.5px solid var(--border2);border-radius:8px;
+  padding:6px 11px;color:var(--text2);font-size:1.05rem;cursor:pointer;
+  transition:all .14s;line-height:1;font-family:inherit;flex-shrink:0}
+.set-btn:hover{border-color:var(--gold);color:var(--gold)}
+.sym-panel{position:absolute;top:54px;left:14px;z-index:200;
+  background:var(--surf);border:1px solid var(--border2);border-radius:14px;
+  padding:14px 16px;box-shadow:0 8px 30px rgba(0,0,0,.55);display:none;min-width:200px}
+.sym-panel.open{display:block}
+.sym-lbl{font-size:.62rem;color:var(--text2);text-transform:uppercase;
+  letter-spacing:1.8px;font-weight:700;margin-bottom:9px}
+.sym-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.sym-opt{font-size:1.6rem;cursor:pointer;border-radius:9px;padding:5px 7px;
+  transition:all .15s;border:2px solid transparent;line-height:1}
+.sym-opt:hover{background:var(--surf2);transform:scale(1.18)}
+.sym-opt.sel{border-color:var(--gold);background:rgba(245,200,66,.12)}
+
 .score-strip{display:flex;justify-content:center;gap:32px;
   padding:7px 24px;background:rgba(13,16,53,.5);border-bottom:1px solid var(--border)}
 .ss .val{font-size:1.2rem;font-weight:800;text-align:center;line-height:1}
@@ -367,7 +384,10 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 ══════════════════════════════════════ -->
 <div id="game-screen">
   <div class="game-header">
-    <button class="back-btn" id="back-btn">← Word Sets</button>
+    <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+      <button class="back-btn" id="back-btn">← Word Sets</button>
+      <button class="set-btn" id="set-btn" title="Life symbol">⚙</button>
+    </div>
     <div class="progress-center">
       <div class="pdots" id="pdots"></div>
       <div class="prog-lbl" id="prog-lbl">1 / 1</div>
@@ -376,6 +396,11 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
       <button class="nav-btn" id="prev-btn">◀ Prev</button>
       <button class="nav-btn" id="next-btn">Next ▶</button>
     </div>
+  </div>
+
+  <div class="sym-panel" id="sym-panel">
+    <div class="sym-lbl">Life Symbol</div>
+    <div class="sym-row" id="sym-row"></div>
   </div>
 
   <div class="score-strip">
@@ -654,6 +679,8 @@ let qStatus     = [];  // 'active'|'won'|'lost'|'skipped'
 let curWord='', curHint='', curCat='', curDiff='';
 let guessed=new Set(), wrongCount=0, gameOver=false, hintShown=false;
 let wins=0, losses=0, streak=0;
+const SYM_OPTS=['❤️','🪀','⭐','🤖','⚡'];
+let lifeSym=localStorage.getItem('lifeSym')||'❤️';
 
 // ═══════════════════════════════════════════
 //  BUILD FLAT LIST
@@ -973,10 +1000,32 @@ function refreshKB(){
     }
   });
 }
+function toggleSymPanel(){
+  const p=document.getElementById('sym-panel');
+  p.classList.toggle('open');
+  if(p.classList.contains('open')) renderSymPanel();
+}
+function renderSymPanel(){
+  document.getElementById('sym-row').innerHTML=SYM_OPTS.map(s=>
+    `<span class="sym-opt${s===lifeSym?' sel':''}" onclick="setSym('${s}')">${s}</span>`
+  ).join('');
+}
+function setSym(s){
+  lifeSym=s; localStorage.setItem('lifeSym',s);
+  document.getElementById('sym-panel').classList.remove('open');
+  refreshLives();
+}
+document.getElementById('set-btn').addEventListener('click',toggleSymPanel);
+document.addEventListener('click',e=>{
+  const p=document.getElementById('sym-panel');
+  if(p.classList.contains('open')&&!e.target.closest('#sym-panel')&&!e.target.closest('#set-btn'))
+    p.classList.remove('open');
+});
+
 function refreshLives(){
   const rem=6-wrongCount;
   document.getElementById('lives').innerHTML=
-    Array.from({length:6},(_,i)=>`<span>${i<rem?'❤️':'🖤'}</span>`).join('');
+    Array.from({length:6},(_,i)=>`<span style="opacity:${i<rem?1:.18};font-size:.92rem">${lifeSym}</span>`).join('');
   document.getElementById('wrong-num').textContent=wrongCount;
   const el=document.getElementById('wchips');el.innerHTML='';
   guessed.forEach(l=>{
@@ -991,38 +1040,125 @@ function refreshLives(){
 const hmc=document.getElementById('hm-canvas');
 const hmx=hmc.getContext('2d');
 function drawHM(w){
-  hmx.clearRect(0,0,200,228);hmx.save();
-  hmx.lineCap='round';hmx.lineJoin='round';
-  hmx.strokeStyle='#F5C842';hmx.lineWidth=3.5;hmx.shadowColor='#F5C842';hmx.shadowBlur=8;
-  hmx.beginPath();hmx.moveTo(20,220);hmx.lineTo(152,220);hmx.stroke();
-  hmx.beginPath();hmx.moveTo(52,220);hmx.lineTo(52,18);hmx.stroke();
-  hmx.beginPath();hmx.moveTo(52,18);hmx.lineTo(124,18);hmx.stroke();
-  hmx.beginPath();hmx.moveTo(124,18);hmx.lineTo(124,46);hmx.stroke();
+  hmx.clearRect(0,0,200,228); hmx.save();
+  hmx.lineCap='round'; hmx.lineJoin='round';
+
+  // ── Gallows (gold) ──
+  hmx.strokeStyle='#F5C842'; hmx.lineWidth=3.5;
+  hmx.shadowColor='#F5C842'; hmx.shadowBlur=8;
+  hmx.beginPath(); hmx.moveTo(20,220); hmx.lineTo(160,220); hmx.stroke();
+  hmx.beginPath(); hmx.moveTo(52,220); hmx.lineTo(52,18);   hmx.stroke();
+  hmx.beginPath(); hmx.moveTo(52,18);  hmx.lineTo(124,18);  hmx.stroke();
+  // Rope (dashed cable)
+  hmx.lineWidth=2.5; hmx.setLineDash([5,3]);
+  hmx.beginPath(); hmx.moveTo(124,18); hmx.lineTo(124,47); hmx.stroke();
+  hmx.setLineDash([]);
   if(!w){hmx.restore();return;}
-  const col=w>=6?'#FB7185':'#2DD4BF';
-  hmx.strokeStyle=col;hmx.shadowColor=col;hmx.shadowBlur=12;hmx.lineWidth=3;
+
+  const dead=w>=6;
+  const col=dead?'#FB7185':'#2DD4BF';
+  hmx.strokeStyle=col; hmx.shadowColor=col; hmx.shadowBlur=14;
+
+  // ── Stage 1: Robot head ──
   if(w>=1){
-    hmx.beginPath();hmx.arc(124,63,17,0,Math.PI*2);
-    hmx.fillStyle=w>=6?'rgba(251,113,133,.14)':'rgba(45,212,191,.07)';
-    hmx.fill();hmx.stroke();hmx.lineWidth=2;
-    if(w>=6){
-      [[118,57,122,61],[122,57,118,61],[128,57,132,61],[132,57,128,61]].forEach(([x1,y1,x2,y2])=>{
-        hmx.beginPath();hmx.moveTo(x1,y1);hmx.lineTo(x2,y2);hmx.stroke();
-      });
-      hmx.beginPath();hmx.arc(124,71,5,0,Math.PI);hmx.stroke();
+    // Antenna post + ball
+    hmx.lineWidth=2;
+    hmx.beginPath(); hmx.moveTo(124,47); hmx.lineTo(124,53); hmx.stroke();
+    hmx.fillStyle=col;
+    hmx.beginPath(); hmx.arc(124,56,4,0,Math.PI*2); hmx.fill();
+
+    // Head box
+    hmx.lineWidth=2.5;
+    hmx.fillStyle=dead?'rgba(251,113,133,.14)':'rgba(45,212,191,.10)';
+    hmx.beginPath(); hmx.roundRect(108,61,32,26,5); hmx.fill(); hmx.stroke();
+
+    // Ear bolts
+    hmx.fillStyle=col;
+    hmx.beginPath(); hmx.arc(108,74,3,0,Math.PI*2); hmx.fill();
+    hmx.beginPath(); hmx.arc(140,74,3,0,Math.PI*2); hmx.fill();
+
+    if(dead){
+      // X eyes
+      hmx.lineWidth=1.8; hmx.strokeStyle=col;
+      hmx.beginPath(); hmx.moveTo(113,67); hmx.lineTo(119,73); hmx.stroke();
+      hmx.beginPath(); hmx.moveTo(119,67); hmx.lineTo(113,73); hmx.stroke();
+      hmx.beginPath(); hmx.moveTo(129,67); hmx.lineTo(135,73); hmx.stroke();
+      hmx.beginPath(); hmx.moveTo(135,67); hmx.lineTo(129,73); hmx.stroke();
+      // Frown
+      hmx.beginPath(); hmx.arc(124,82,5,Math.PI*.1,Math.PI*.9); hmx.stroke();
     } else {
-      hmx.fillStyle=col;
-      hmx.beginPath();hmx.arc(119,59,2,0,Math.PI*2);hmx.fill();
-      hmx.beginPath();hmx.arc(129,59,2,0,Math.PI*2);hmx.fill();
-      hmx.beginPath();hmx.arc(124,65,4,0,Math.PI);hmx.stroke();
+      // Glowing square eyes
+      hmx.shadowBlur=8; hmx.fillStyle=col;
+      hmx.fillRect(113,67,7,6); hmx.fillRect(128,67,7,6);
+      hmx.shadowBlur=14;
+      // Mouth grill (3 vertical slits)
+      hmx.lineWidth=1.4;
+      for(let i=0;i<3;i++){
+        hmx.beginPath(); hmx.moveTo(117+i*5,80); hmx.lineTo(117+i*5,84); hmx.stroke();
+      }
     }
-    hmx.lineWidth=3;
   }
-  if(w>=2){hmx.beginPath();hmx.moveTo(124,80);hmx.lineTo(124,146);hmx.stroke();}
-  if(w>=3){hmx.beginPath();hmx.moveTo(124,98);hmx.lineTo(100,124);hmx.stroke();}
-  if(w>=4){hmx.beginPath();hmx.moveTo(124,98);hmx.lineTo(148,124);hmx.stroke();}
-  if(w>=5){hmx.beginPath();hmx.moveTo(124,146);hmx.lineTo(102,188);hmx.stroke();}
-  if(w>=6){hmx.beginPath();hmx.moveTo(124,146);hmx.lineTo(146,188);hmx.stroke();}
+
+  // ── Stage 2: Body (torso) ──
+  if(w>=2){
+    hmx.lineWidth=2.5;
+    hmx.fillStyle=dead?'rgba(251,113,133,.08)':'rgba(45,212,191,.07)';
+    hmx.beginPath(); hmx.roundRect(110,89,28,36,3); hmx.fill(); hmx.stroke();
+    // Chest panel lines
+    hmx.lineWidth=1.2;
+    hmx.beginPath(); hmx.moveTo(115,96);  hmx.lineTo(133,96);  hmx.stroke();
+    hmx.beginPath(); hmx.moveTo(115,103); hmx.lineTo(133,103); hmx.stroke();
+    // Power core circle
+    hmx.lineWidth=1.8;
+    hmx.beginPath(); hmx.arc(124,114,4,0,Math.PI*2); hmx.stroke();
+    if(!dead){ hmx.fillStyle=col; hmx.shadowBlur=6; hmx.fill(); hmx.shadowBlur=14; }
+  }
+
+  // ── Stage 3: Left arm ──
+  if(w>=3){
+    hmx.lineWidth=2.5;
+    hmx.beginPath(); hmx.moveTo(110,95); hmx.lineTo(93,110); hmx.stroke();
+    hmx.lineWidth=2;
+    hmx.beginPath(); hmx.roundRect(86,108,9,7,2); hmx.stroke();
+  }
+
+  // ── Stage 4: Right arm ──
+  if(w>=4){
+    hmx.lineWidth=2.5;
+    hmx.beginPath(); hmx.moveTo(138,95); hmx.lineTo(155,110); hmx.stroke();
+    hmx.lineWidth=2;
+    hmx.beginPath(); hmx.roundRect(153,108,9,7,2); hmx.stroke();
+  }
+
+  // ── Stage 5: Left leg ──
+  if(w>=5){
+    hmx.lineWidth=2.5;
+    hmx.beginPath(); hmx.moveTo(115,125); hmx.lineTo(104,158); hmx.stroke();
+    hmx.lineWidth=2;
+    hmx.beginPath(); hmx.roundRect(97,156,13,7,2); hmx.stroke();
+  }
+
+  // ── Stage 6: Right leg + death sparks ──
+  if(w>=6){
+    hmx.lineWidth=2.5;
+    hmx.beginPath(); hmx.moveTo(133,125); hmx.lineTo(144,158); hmx.stroke();
+    hmx.lineWidth=2;
+    hmx.beginPath(); hmx.roundRect(138,156,13,7,2); hmx.stroke();
+    // Lightning sparks bursting from head
+    hmx.lineWidth=1.8; hmx.shadowBlur=22;
+    // Left spark
+    hmx.beginPath();
+    hmx.moveTo(108,65); hmx.lineTo(100,57); hmx.lineTo(105,53); hmx.lineTo(96,45); hmx.stroke();
+    // Right spark
+    hmx.beginPath();
+    hmx.moveTo(140,65); hmx.lineTo(148,57); hmx.lineTo(143,53); hmx.lineTo(152,45); hmx.stroke();
+    // Top spark
+    hmx.beginPath();
+    hmx.moveTo(120,61); hmx.lineTo(116,51); hmx.lineTo(120,48); hmx.lineTo(118,40); hmx.stroke();
+    hmx.beginPath();
+    hmx.moveTo(128,61); hmx.lineTo(132,51); hmx.lineTo(128,48); hmx.lineTo(130,40); hmx.stroke();
+  }
+
   hmx.restore();
 }
 
