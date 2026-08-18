@@ -212,6 +212,56 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .sym-opt:hover{background:var(--surf2);transform:scale(1.18)}
 .sym-opt.sel{border-color:var(--gold);background:rgba(245,200,66,.12)}
 
+/* ── Teams panel ── */
+.icon-btn{background:var(--surf2);border:1.5px solid var(--border2);border-radius:8px;
+  padding:6px 10px;color:var(--text2);font-size:.82rem;font-weight:700;cursor:pointer;
+  transition:all .14s;font-family:inherit;white-space:nowrap;letter-spacing:.4px}
+.icon-btn:hover{border-color:var(--gold);color:var(--gold)}
+.icon-btn.active{border-color:rgba(245,200,66,.5);color:var(--gold);background:rgba(245,200,66,.08)}
+.game-logo{height:36px;filter:drop-shadow(0 0 8px rgba(245,200,66,.4));flex-shrink:0}
+
+.teams-bar{display:none;align-items:stretch;gap:8px;padding:10px 20px;
+  background:rgba(13,16,53,.7);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.teams-bar.open{display:flex}
+.team-card{flex:1;min-width:130px;max-width:220px;
+  background:var(--surf);border:2px solid var(--border);border-radius:12px;
+  padding:10px 12px;display:flex;flex-direction:column;gap:6px;
+  transition:all .18s;cursor:pointer;position:relative}
+.team-card:hover{border-color:var(--border2)}
+.team-card.active-team{border-color:var(--gold);background:rgba(245,200,66,.06);
+  box-shadow:0 0 12px rgba(245,200,66,.12)}
+.team-name-inp{background:transparent;border:none;color:var(--text);
+  font-size:.88rem;font-weight:700;width:100%;outline:none;
+  cursor:pointer;letter-spacing:.3px;font-family:inherit}
+.team-name-inp:focus{cursor:text;border-bottom:1px dashed var(--gold)}
+.playing-badge{position:absolute;top:6px;right:8px;
+  font-size:.55rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;
+  color:var(--gold);opacity:0}
+.team-card.active-team .playing-badge{opacity:1}
+.team-score-row{display:flex;align-items:center;gap:8px}
+.t-score{font-size:1.6rem;font-weight:900;color:var(--text);min-width:32px;text-align:center;line-height:1}
+.team-card.active-team .t-score{color:var(--gold);text-shadow:0 0 10px rgba(245,200,66,.4)}
+.sc-btn{background:var(--surf2);border:1.5px solid var(--border2);border-radius:6px;
+  width:26px;height:26px;display:flex;align-items:center;justify-content:center;
+  font-size:.9rem;font-weight:900;cursor:pointer;color:var(--text2);
+  transition:all .12s;line-height:1;font-family:inherit}
+.sc-btn:hover{border-color:var(--gold);color:var(--gold)}
+.teams-footer{display:flex;align-items:center;justify-content:flex-end;
+  width:100%;padding-top:4px}
+.reset-btn{background:transparent;border:none;color:var(--text3);
+  font-size:.65rem;cursor:pointer;text-transform:uppercase;letter-spacing:1px;
+  font-family:inherit;font-weight:700;transition:color .14s}
+.reset-btn:hover{color:var(--red)}
+
+/* score-strip hidden */
+.score-strip.hidden{display:none}
+.stats-revive{display:none;position:fixed;bottom:14px;right:14px;z-index:60;
+  background:var(--surf2);border:1.5px solid var(--border2);border-radius:8px;
+  padding:6px 11px;font-size:.72rem;color:var(--text3);cursor:pointer;
+  transition:all .14s;font-family:inherit}
+.stats-revive:hover{border-color:var(--gold);color:var(--gold)}
+.stats-revive.show{display:block}
+
 .score-strip{display:flex;justify-content:center;gap:32px;
   padding:7px 24px;background:rgba(13,16,53,.5);border-bottom:1px solid var(--border)}
 .ss .val{font-size:1.2rem;font-weight:800;text-align:center;line-height:1}
@@ -385,8 +435,11 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 <div id="game-screen">
   <div class="game-header">
     <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
-      <button class="back-btn" id="back-btn">← Word Sets</button>
+      <img class="game-logo" src="logo.png" alt="AI-YoYo"
+           onerror="this.style.display='none'">
       <button class="set-btn" id="set-btn" title="Life symbol">⚙</button>
+      <button class="icon-btn" id="stats-btn" onclick="toggleStats()" title="Show/hide stats">👁 Stats</button>
+      <button class="icon-btn active" id="teams-btn" onclick="toggleTeams()" title="Show/hide teams">🏆 Teams</button>
     </div>
     <div class="progress-center">
       <div class="pdots" id="pdots"></div>
@@ -403,11 +456,15 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
     <div class="sym-row" id="sym-row"></div>
   </div>
 
-  <div class="score-strip">
+  <!-- Teams bar -->
+  <div class="teams-bar open" id="teams-bar"></div>
+
+  <div class="score-strip" id="score-strip">
     <div class="ss w"><div class="val" id="s-wins">0</div><div class="lbl">Wins</div></div>
     <div class="ss l"><div class="val" id="s-losses">0</div><div class="lbl">Losses</div></div>
     <div class="ss s"><div class="val" id="s-streak">0</div><div class="lbl">Streak</div></div>
   </div>
+  <button class="stats-revive" id="stats-revive" onclick="toggleStats()">👁 Show Stats</button>
 
   <div class="game-body">
     <div class="hm-col">
@@ -682,6 +739,13 @@ let wins=0, losses=0, streak=0;
 const SYM_OPTS=['❤️','🪀','⭐','🤖','⚡'];
 let lifeSym=localStorage.getItem('lifeSym')||'❤️';
 
+// Teams
+let teams=JSON.parse(localStorage.getItem('hangman_teams')||'null')||
+  [{name:'Team 1',score:0},{name:'Team 2',score:0},{name:'Team 3',score:0},{name:'Team 4',score:0}];
+let activeTeam=0;
+let statsVisible=true;
+let teamsVisible=true;
+
 // ═══════════════════════════════════════════
 //  BUILD FLAT LIST
 // ═══════════════════════════════════════════
@@ -816,12 +880,65 @@ function submitCW(){
 // ═══════════════════════════════════════════
 function startSession(){
   const pool=[...allWords,...customWords].filter(w=>selectedIds.has(w.id));
-  gameQueue=shuffleOn?pool.sort(()=>Math.random()-.5):[...pool];
-  queueIdx=0; qStatus=gameQueue.map(()=>'active');
-  wins=0;losses=0;streak=0; updateScoreUI();
+  const q=shuffleOn?pool.sort(()=>Math.random()-.5):[...pool];
+  localStorage.setItem('hangman_queue',JSON.stringify(q));
+  localStorage.setItem('hangman_teams',JSON.stringify(teams));
+  window.open(window.location.pathname+'?play','_blank');
+}
+
+function launchGameInPage(q){
+  gameQueue=q; queueIdx=0; qStatus=gameQueue.map(()=>'active');
+  wins=0;losses=0;streak=0; activeTeam=0; updateScoreUI();
   document.getElementById('setup-screen').style.display='none';
   document.getElementById('game-screen').classList.add('visible');
-  buildKeyboard(); loadWord(0);
+  buildKeyboard(); renderTeams(); loadWord(0);
+}
+
+// ── Teams ──
+function renderTeams(){
+  const bar=document.getElementById('teams-bar');
+  bar.innerHTML=teams.map((t,i)=>`
+    <div class="team-card${i===activeTeam?' active-team':''}" onclick="selectTeam(${i})">
+      <span class="playing-badge">● PLAYING</span>
+      <input class="team-name-inp" value="${t.name}"
+        onclick="event.stopPropagation()"
+        onchange="renameTeam(${i},this.value)"
+        title="Click to rename">
+      <div class="team-score-row">
+        <button class="sc-btn" onclick="event.stopPropagation();addScore(${i},-1)">−</button>
+        <div class="t-score" id="ts-${i}">${t.score}</div>
+        <button class="sc-btn" onclick="event.stopPropagation();addScore(${i},1)">+</button>
+      </div>
+    </div>`).join('')+
+    `<div class="teams-footer" style="align-self:flex-end">
+       <button class="reset-btn" onclick="resetScores()">Reset all scores</button>
+     </div>`;
+}
+function selectTeam(i){activeTeam=i;renderTeams();}
+function addScore(i,d){
+  teams[i].score=Math.max(0,teams[i].score+d);
+  localStorage.setItem('hangman_teams',JSON.stringify(teams));
+  document.getElementById('ts-'+i).textContent=teams[i].score;
+}
+function renameTeam(i,v){
+  teams[i].name=v.trim()||'Team '+(i+1);
+  localStorage.setItem('hangman_teams',JSON.stringify(teams));
+}
+function resetScores(){
+  teams.forEach(t=>t.score=0);
+  localStorage.setItem('hangman_teams',JSON.stringify(teams));
+  renderTeams();
+}
+function toggleTeams(){
+  teamsVisible=!teamsVisible;
+  document.getElementById('teams-bar').classList.toggle('open',teamsVisible);
+  document.getElementById('teams-btn').classList.toggle('active',teamsVisible);
+}
+function toggleStats(){
+  statsVisible=!statsVisible;
+  document.getElementById('score-strip').classList.toggle('hidden',!statsVisible);
+  document.getElementById('stats-revive').classList.toggle('show',!statsVisible);
+  document.getElementById('stats-btn').classList.toggle('active',statsVisible);
 }
 
 function goSetup(){
@@ -871,6 +988,7 @@ function guess(l){
   const lost=wrongCount>=6;
   if(won){
     wins++;streak++;updateScoreUI();qStatus[queueIdx]='won';gameOver=true;
+    addScore(activeTeam,1);
     updateProgress(); setTimeout(()=>{launchConfetti();showResult(true);},380);
   } else if(lost){
     losses++;streak=0;updateScoreUI();qStatus[queueIdx]='lost';gameOver=true;
@@ -1201,8 +1319,21 @@ function stopConfetti(){if(canim)cancelAnimationFrame(canim);cc.style.display='n
 //  BOOT
 // ═══════════════════════════════════════════
 buildLib();
-renderGrid();
-updateSelUI();
+if(new URLSearchParams(window.location.search).has('play')){
+  // Game tab — load queue from localStorage and start immediately
+  const stored=localStorage.getItem('hangman_queue');
+  const storedTeams=localStorage.getItem('hangman_teams');
+  if(storedTeams) teams=JSON.parse(storedTeams);
+  if(stored){
+    launchGameInPage(JSON.parse(stored));
+  } else {
+    // fallback: show setup
+    renderGrid(); updateSelUI();
+  }
+} else {
+  renderGrid();
+  updateSelUI();
+}
 </script>
 </body>
 </html>
