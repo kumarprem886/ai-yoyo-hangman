@@ -880,11 +880,27 @@ function submitCW(){
 // ═══════════════════════════════════════════
 function startSession(){
   const pool=[...allWords,...customWords].filter(w=>selectedIds.has(w.id));
-  const q=shuffleOn?pool.sort(()=>Math.random()-.5):[...pool];
+  if(!pool.length) return;
+  const q=shuffleOn?[...pool].sort(()=>Math.random()-.5):[...pool];
   const key='hm_'+Date.now();
   localStorage.setItem(key,JSON.stringify({queue:q,teams:teams}));
-  const base=window.location.origin+window.location.pathname;
-  window.open(base+'?play='+key,'_blank');
+  // strip any existing query/hash to get a clean base URL
+  const base=window.location.href.replace(/[?#].*$/,'');
+  const gameUrl=base+'?play='+key;
+  const tab=window.open(gameUrl,'_blank');
+  if(!tab){
+    // popup blocked — launch in current tab
+    if(_data_load(key)) return;
+    launchGameInPage(q);
+  }
+}
+function _data_load(key){
+  const raw=localStorage.getItem(key);
+  if(!raw) return false;
+  const d=JSON.parse(raw);
+  if(d.teams) teams=d.teams;
+  launchGameInPage(d.queue);
+  return true;
 }
 
 function launchGameInPage(q){
@@ -1320,21 +1336,11 @@ function stopConfetti(){if(canim)cancelAnimationFrame(canim);cc.style.display='n
 //  BOOT
 // ═══════════════════════════════════════════
 buildLib();
-const _params=new URLSearchParams(window.location.search);
-const _playKey=_params.get('play');
-if(_playKey){
-  const _raw=localStorage.getItem(_playKey);
-  if(_raw){
-    const _data=JSON.parse(_raw);
-    if(_data.teams) teams=_data.teams;
-    launchGameInPage(_data.queue);
-  } else {
-    renderGrid(); updateSelUI();
-  }
-} else {
-  renderGrid();
-  updateSelUI();
-}
+(function(){
+  const key=new URLSearchParams(window.location.search).get('play');
+  if(key && _data_load(key)) return;
+  renderGrid(); updateSelUI();
+})();
 </script>
 </body>
 </html>
