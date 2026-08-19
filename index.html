@@ -135,12 +135,13 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 }
 .setup-teams-row{display:flex;align-items:center;gap:10px;width:100%}
 .setup-teams-row .tbar-lbl{flex-shrink:0}
-.setup-team-inputs{display:flex;gap:6px;flex:1;flex-wrap:wrap}
+.setup-team-inputs{display:flex;gap:6px;flex:1}
 .team-name-setup{
   background:var(--surf2);border:1.5px solid var(--border);
   border-radius:8px;color:var(--text);font-size:.78rem;
-  padding:5px 9px;min-width:70px;flex:1;
-  font-family:inherit;outline:none;transition:border-color .15s
+  padding:5px 9px;flex:1;width:0;
+  font-family:inherit;outline:none;transition:border-color .15s;
+  text-align:center
 }
 .team-name-setup:focus{border-color:var(--gold)}
 .setup-actions-row{display:flex;align-items:center;justify-content:space-between;width:100%}
@@ -847,7 +848,7 @@ let lifeSym=localStorage.getItem('lifeSym')||'❤️';
 let teams=JSON.parse(localStorage.getItem('hangman_teams')||'null')||
   [{name:'Team 1',score:0},{name:'Team 2',score:0},{name:'Team 3',score:0},{name:'Team 4',score:0}];
 let activeTeam=0;
-let statsVisible=true;
+let statsVisible=false;
 let teamsVisible=true;
 
 // ═══════════════════════════════════════════
@@ -1027,6 +1028,10 @@ function launchGameInPage(q){
   document.getElementById('setup-screen').style.display='none';
   document.getElementById('game-screen').classList.add('visible');
   document.getElementById('game-bg-layer').classList.add('show');
+  statsVisible=false;
+  document.getElementById('score-strip').classList.add('hidden');
+  document.getElementById('stats-revive').classList.add('show');
+  document.getElementById('stats-btn').classList.remove('active');
   buildKeyboard(); renderTeams(); loadWord(0);
 }
 
