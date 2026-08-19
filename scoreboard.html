@@ -350,7 +350,6 @@ function render(){
   document.getElementById('leaderboard').innerHTML=order.map((ti,pos)=>{
     const t=state.teams[ti];
     return `<div class="lb-card${pos===0?' gold-card':''}" style="--tc:${t.color}">
-      <div class="lb-pos">${pos+1}</div>
       <img class="lb-logo" src="${TEAM_DEFAULTS[ti].logo}" alt=""
         onerror="this.style.display='none'">
       <div class="lb-name">${esc(t.name)}</div>
