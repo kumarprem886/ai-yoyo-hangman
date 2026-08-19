@@ -1184,9 +1184,6 @@ document.getElementById('r-retry').addEventListener('click',()=>{
 });
 
 function showSC(){
-  document.getElementById('sc-wins').textContent=wins;
-  document.getElementById('sc-losses').textContent=losses;
-
   // Team scores
   const maxScore=Math.max(...teams.map(t=>t.score));
   const winners=teams.filter(t=>t.score===maxScore);
