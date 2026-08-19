@@ -76,8 +76,12 @@ main{max-width:1060px;margin:0 auto;padding:30px 18px 70px}
 .sc-btn.plus:hover{border-color:var(--teal);color:var(--teal)}
 .sc-val{
   min-width:38px;text-align:center;font-size:1rem;font-weight:800;
-  color:var(--text);user-select:none
+  color:var(--text);cursor:pointer;border-bottom:1.5px solid transparent;
+  transition:border-color .15s;padding:1px 2px;border-radius:3px;
+  outline:none
 }
+.sc-val:hover{border-bottom-color:rgba(255,255,255,.25)}
+.sc-val:focus{border-bottom-color:var(--teal);background:rgba(45,212,191,.07)}
 
 .del-btn{
   background:none;border:none;color:var(--text3);font-size:.9rem;
@@ -366,7 +370,12 @@ function render(){
       ${state.teams.map((t,ti)=>`<td>
         <div class="score-ctrl">
           <button class="sc-btn minus" onclick="adjScore(${ai},${ti},-1)">−</button>
-          <span class="sc-val" style="color:${t.color}">${a.scores[ti]||0}</span>
+          <span class="sc-val" style="color:${t.color}"
+            contenteditable="true" inputmode="numeric"
+            onblur="commitScore(${ai},${ti},this)"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+            onclick="event.stopPropagation();selectAll(this)"
+          >${a.scores[ti]||0}</span>
           <button class="sc-btn plus" onclick="adjScore(${ai},${ti},1)">+</button>
         </div>
       </td>`).join('')}
@@ -391,6 +400,21 @@ function adjScore(ai,ti,delta){
   state.activities[ai].scores[ti]=Math.max(0,(state.activities[ai].scores[ti]||0)+delta);
   save();
   render();
+}
+
+function commitScore(ai,ti,el){
+  const v=Math.max(0,parseInt(el.textContent)||0);
+  state.activities[ai].scores[ti]=v;
+  save();
+  render();
+}
+
+function selectAll(el){
+  const r=document.createRange();
+  r.selectNodeContents(el);
+  const s=window.getSelection();
+  s.removeAllRanges();
+  s.addRange(r);
 }
 
 function renameAct(ai,name){
