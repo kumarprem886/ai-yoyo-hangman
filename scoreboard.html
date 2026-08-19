@@ -298,7 +298,7 @@ main{max-width:1060px;margin:0 auto;padding:30px 18px 70px}
 <script>
 'use strict';
 const TC = ['#FF8C42','#2DD4BF','#A78BFA','#FB7185'];
-const RANKS = ['🥇','🥈','🥉','🏅'];
+const RANKS = ['1️⃣','2️⃣','3️⃣','4️⃣'];
 
 let state = load();
 
@@ -487,7 +487,7 @@ function announceWinner(){
   } else {
     const w=winners[0];
     inner.innerHTML=`
-      <div class="wa-medal">🥇</div>
+      <div class="wa-medal">1️⃣</div>
       <div class="wa-tag" style="color:${w.color}">Winner!</div>
       <div class="wa-name" style="color:${w.color};text-shadow:0 0 60px ${w.color}80">${esc(w.name)}</div>
       <div class="wa-pts">${max} points</div>
