@@ -90,7 +90,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .pill.add-cust:hover{background:rgba(167,139,250,.12);border-color:var(--purple)}
 
 /* Grid */
-.grid-wrap{flex:1;overflow-y:auto;padding:18px 24px 120px}
+.grid-wrap{flex:1;overflow-y:auto;padding:18px 24px 160px}
 .word-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(172px,1fr));gap:10px}
 
 .word-card{
@@ -128,11 +128,22 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 /* Bottom bar */
 .setup-bottom{
   position:fixed;bottom:0;left:0;right:0;z-index:50;
-  display:flex;align-items:center;justify-content:space-between;
-  padding:12px 24px;gap:10px;flex-wrap:wrap;
+  display:flex;flex-direction:column;gap:8px;
+  padding:12px 24px;
   background:rgba(9,11,42,.96);backdrop-filter:blur(12px);
   border-top:1px solid var(--border)
 }
+.setup-teams-row{display:flex;align-items:center;gap:10px;width:100%}
+.setup-teams-row .tbar-lbl{flex-shrink:0}
+.setup-team-inputs{display:flex;gap:6px;flex:1;flex-wrap:wrap}
+.team-name-setup{
+  background:var(--surf2);border:1.5px solid var(--border);
+  border-radius:8px;color:var(--text);font-size:.78rem;
+  padding:5px 9px;min-width:70px;flex:1;
+  font-family:inherit;outline:none;transition:border-color .15s
+}
+.team-name-setup:focus{border-color:var(--gold)}
+.setup-actions-row{display:flex;align-items:center;justify-content:space-between;width:100%}
 .shuffle-btn{
   display:flex;align-items:center;gap:8px;
   background:var(--surf2);border:1.5px solid var(--border2);
@@ -420,12 +431,18 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   </div>
 
   <div class="setup-bottom">
-    <button class="shuffle-btn" id="shuffle-btn">
-      🔀 Shuffle<div class="tog"></div>
-    </button>
-    <button class="play-btn" id="play-btn" disabled>
-      ▶ Play <span class="play-badge" id="play-count">0</span>
-    </button>
+    <div class="setup-teams-row">
+      <span class="tbar-lbl">Teams</span>
+      <div class="setup-team-inputs" id="setup-team-inputs"></div>
+    </div>
+    <div class="setup-actions-row">
+      <button class="shuffle-btn" id="shuffle-btn">
+        🔀 Shuffle<div class="tog"></div>
+      </button>
+      <button class="play-btn" id="play-btn" disabled>
+        ▶ Play <span class="play-badge" id="play-count">0</span>
+      </button>
+    </div>
   </div>
 </div>
 
@@ -919,9 +936,21 @@ function addScore(i,d){
   localStorage.setItem('hangman_teams',JSON.stringify(teams));
   document.getElementById('ts-'+i).textContent=teams[i].score;
 }
+function renderSetupTeams(){
+  const c=document.getElementById('setup-team-inputs');
+  if(!c) return;
+  c.innerHTML=teams.map((t,i)=>
+    `<input class="team-name-setup" value="${t.name.replace(/"/g,'&quot;')}"
+      placeholder="Team ${i+1}"
+      onchange="renameTeam(${i},this.value)"
+      title="Team ${i+1} name">`
+  ).join('');
+}
 function renameTeam(i,v){
   teams[i].name=v.trim()||'Team '+(i+1);
   localStorage.setItem('hangman_teams',JSON.stringify(teams));
+  renderSetupTeams();
+  renderTeams();
 }
 function resetScores(){
   teams.forEach(t=>t.score=0);
@@ -1319,6 +1348,7 @@ function stopConfetti(){if(canim)cancelAnimationFrame(canim);cc.style.display='n
 buildLib();
 renderGrid();
 updateSelUI();
+renderSetupTeams();
 </script>
 </body>
 </html>
