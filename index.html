@@ -234,10 +234,10 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .exit-btn:hover{border-color:var(--red);color:var(--red);background:rgba(251,113,133,.1)}
 .game-logo{height:36px;filter:drop-shadow(0 0 8px rgba(245,200,66,.4));flex-shrink:0}
 
-.teams-bar{display:none;align-items:stretch;gap:10px;padding:10px 20px;
+.teams-bar{display:none;padding:10px 20px;
   background:rgba(13,16,53,.7);border-bottom:1px solid var(--border)}
-.teams-bar.open{display:flex;justify-content:space-between}
-.team-card{flex:1;min-width:0;max-width:none;
+.teams-bar.open{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;align-items:stretch}
+.team-card{min-width:0;
   background:var(--surf);border:2px solid var(--border);border-radius:12px;
   padding:10px 12px;display:flex;flex-direction:column;gap:6px;
   transition:all .18s;cursor:pointer;position:relative}
@@ -1050,10 +1050,8 @@ function renderTeams(){
         <div class="t-score" id="ts-${i}">${t.score}</div>
         <button class="sc-btn" onclick="event.stopPropagation();addScore(${i},1)">+</button>
       </div>
-    </div>`).join('')+
-    `<div class="teams-footer" style="align-self:flex-end">
-       <button class="reset-btn" onclick="resetScores()">Reset all scores</button>
-     </div>`;
+      <button class="reset-btn" onclick="event.stopPropagation();resetScores()" style="margin-top:auto;align-self:flex-end;font-size:.58rem">↺ Reset</button>
+    </div>`).join('');
 }
 function selectTeam(i){activeTeam=i;renderTeams();}
 function addScore(i,d){
