@@ -1228,21 +1228,16 @@ function finishGame(){
 }
 
 function openMainScoreboard(){
-  // Load or create scoreboard state
+  const TC=['#FF8C42','#2DD4BF','#A78BFA','#FB7185'];
   let sb;
   try{ sb=JSON.parse(localStorage.getItem('chennai_outing_sb')); }catch(e){}
-  if(!sb||!sb.teams||!sb.activities){
-    sb={
-      teams:teams.map(t=>({name:t.name,color:t.color})),
-      activities:[]
-    };
-  }
-  // Sync team names
-  teams.forEach((t,i)=>{ if(sb.teams[i]) sb.teams[i].name=t.name; });
+  if(!sb||!sb.activities) sb={teams:[],activities:[]};
+  // Always overwrite teams fully so names + colours always come from hangman
+  sb.teams=teams.map((t,i)=>({name:t.name,color:TC[i]}));
   // Find or create Hangman activity
   let hact=sb.activities.find(a=>a.name==='Hangman');
   if(!hact){ hact={name:'Hangman',scores:[0,0,0,0]}; sb.activities.unshift(hact); }
-  // Write current team scores into it
+  // Write current scores
   teams.forEach((t,i)=>{ hact.scores[i]=t.score||0; });
   localStorage.setItem('chennai_outing_sb',JSON.stringify(sb));
   window.location.href='scoreboard.html';
