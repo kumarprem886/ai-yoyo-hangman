@@ -284,6 +284,59 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .game-body{flex:1;display:flex;gap:22px;padding:22px 26px 20px;
   max-width:960px;margin:0 auto;width:100%;align-items:flex-start}
 
+/* ── Splash overlay ── */
+.splash-ov{
+  position:fixed;inset:0;z-index:999;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+  background:var(--bg);
+  opacity:0;pointer-events:none;transition:opacity .45s ease
+}
+.splash-ov.show{opacity:1;pointer-events:all}
+.splash-logo-big{
+  width:210px;height:210px;object-fit:contain;
+  filter:drop-shadow(0 0 40px rgba(245,200,66,.65));
+  animation:spl-pop .55s cubic-bezier(.34,1.56,.64,1) forwards
+}
+.splash-tag{
+  font-size:1.5rem;font-weight:900;letter-spacing:3px;text-transform:uppercase;
+  background:linear-gradient(135deg,var(--blue),var(--gold));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:spl-rise .5s .25s ease both
+}
+.splash-sub{
+  font-size:.8rem;color:var(--text2);letter-spacing:3px;text-transform:uppercase;
+  animation:spl-rise .5s .45s ease both
+}
+@keyframes spl-pop{
+  from{transform:scale(.25) rotate(-15deg);opacity:0}
+  to{transform:scale(1) rotate(0);opacity:1}
+}
+@keyframes spl-rise{
+  from{transform:translateY(12px);opacity:0}
+  to{transform:translateY(0);opacity:1}
+}
+
+/* ── Robot speech bubble ── */
+.robot-bubble{
+  position:relative;
+  background:var(--surf2);border:1.5px solid var(--teal);
+  border-radius:12px;padding:7px 11px;
+  font-size:.74rem;color:var(--teal);font-weight:700;
+  max-width:190px;text-align:center;min-height:32px;
+  box-shadow:0 0 14px rgba(45,212,191,.18);
+  opacity:0;transform:translateY(4px);
+  transition:opacity .25s,transform .25s;pointer-events:none
+}
+.robot-bubble.show{opacity:1;transform:translateY(0)}
+.robot-bubble::after{
+  content:'';position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);
+  border:7px solid transparent;border-top-color:var(--teal);border-bottom:none
+}
+.robot-bubble.bad{border-color:var(--red);color:var(--red);box-shadow:0 0 14px rgba(251,113,133,.18)}
+.robot-bubble.bad::after{border-top-color:var(--red)}
+.robot-bubble.win-bub{border-color:var(--gold);color:var(--gold);box-shadow:0 0 14px rgba(245,200,66,.25)}
+.robot-bubble.win-bub::after{border-top-color:var(--gold)}
+
 /* Hangman */
 .hm-col{flex:0 0 200px;display:flex;flex-direction:column;align-items:center;gap:10px}
 #hm-canvas{border:1px solid var(--border);border-radius:14px;
@@ -388,6 +441,14 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 <body>
 <canvas id="confetti-canvas"></canvas>
 
+<!-- Splash overlay -->
+<div id="splash-ov" class="splash-ov">
+  <img src="logo.png" class="splash-logo-big" alt="AI-YoYo"
+       onerror="this.outerHTML='<div style=\'font-size:5rem;animation:spl-pop .55s cubic-bezier(.34,1.56,.64,1) forwards\'>🤖</div>'">
+  <div class="splash-tag">Let's Play!</div>
+  <div class="splash-sub" id="splash-sub">AI-YoYo Hangman</div>
+</div>
+
 <!-- ══════════════════════════════════════
      SETUP SCREEN
 ══════════════════════════════════════ -->
@@ -485,6 +546,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 
   <div class="game-body">
     <div class="hm-col">
+      <div class="robot-bubble" id="robot-bubble"></div>
       <canvas id="hm-canvas" width="200" height="228"></canvas>
       <div class="lives" id="lives"></div>
       <div class="wrong-stat">Wrong: <em id="wrong-num">0</em> / 6</div>
@@ -895,11 +957,43 @@ function submitCW(){
 // ═══════════════════════════════════════════
 //  SESSION START
 // ═══════════════════════════════════════════
+// ── Splash ──
+function showSplash(cb){
+  const ov=document.getElementById('splash-ov');
+  ov.classList.add('show');
+  setTimeout(()=>{
+    ov.classList.remove('show');
+    setTimeout(cb,450);
+  },1700);
+}
+
+// ── Robot quips ──
+const QUIPS={
+  start:["Guess me if you can! 🤖","This one's tricky...","I dare you! ⚡","Calculating your defeat...","Beep boop, begin!","Try and beat me 😏"],
+  correct:["Hmm... lucky.","Error detected!","You got one. Big deal.","Scanning... ✓ correct","Unexpected input!","Fine. That one's free."],
+  wrong:["Ha! Nice try 😏","404: Letter not found!","System intact! 💪","Wrong! Beep boop.","Not in my vocab!","Access denied! 🚫"],
+  win:["SYSTEM OVERLOAD! 💥","Impossible... rebooting","ERROR: Human won 😱","Recalculating... 🤯","You fluked that!"],
+  lose:["VICTORY IS MINE! 😈","I WIN! Humans = 0","Checkmate, human! 🤖","🤖 ROBOT SUPREMACY","Better luck meatbag!"]
+};
+let _bubbleTimer=null;
+function quip(type){
+  const arr=QUIPS[type];
+  const msg=arr[Math.floor(Math.random()*arr.length)];
+  const b=document.getElementById('robot-bubble');
+  if(!b) return;
+  b.textContent=msg;
+  b.className='robot-bubble show'+(type==='wrong'||type==='lose'?' bad':type==='win'?' win-bub':'');
+  clearTimeout(_bubbleTimer);
+  if(type==='correct'||type==='wrong'){
+    _bubbleTimer=setTimeout(()=>b.classList.remove('show'),2200);
+  }
+}
+
 function startSession(){
   const pool=[...allWords,...customWords].filter(w=>selectedIds.has(w.id));
   if(!pool.length) return;
   const q=shuffleOn?[...pool].sort(()=>Math.random()-.5):[...pool];
-  launchGameInPage(q);
+  showSplash(()=>launchGameInPage(q));
 }
 
 function launchGameInPage(q){
@@ -1005,6 +1099,7 @@ function loadWord(idx){
   db.textContent=curDiff.slice(0,1).toUpperCase()+curDiff.slice(1);
 
   drawHM(0); refreshWord(); refreshKB(); refreshLives(); updateProgress();
+  setTimeout(()=>quip('start'),300);
 }
 
 function guess(l){
@@ -1017,10 +1112,14 @@ function guess(l){
   if(won){
     wins++;streak++;updateScoreUI();qStatus[queueIdx]='won';gameOver=true;
     addScore(activeTeam,1);
+    quip('win');
     updateProgress(); setTimeout(()=>{launchConfetti();showResult(true);},380);
   } else if(lost){
     losses++;streak=0;updateScoreUI();qStatus[queueIdx]='lost';gameOver=true;
+    quip('lose');
     updateProgress(); refreshWord(true); setTimeout(()=>showResult(false),520);
+  } else {
+    quip(curWord.includes(l)?'correct':'wrong');
   }
 }
 
