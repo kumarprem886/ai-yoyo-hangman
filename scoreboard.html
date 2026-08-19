@@ -369,14 +369,14 @@ function render(){
       </td>
       ${state.teams.map((t,ti)=>`<td>
         <div class="score-ctrl">
-          <button class="sc-btn minus" onclick="adjScore(${ai},${ti},-1)">−</button>
+          <button class="sc-btn minus" onclick="adjScore(${ai},${ti},-5)">−</button>
           <span class="sc-val" style="color:${t.color}"
             contenteditable="true" inputmode="numeric"
             onblur="commitScore(${ai},${ti},this)"
             onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
             onclick="event.stopPropagation();selectAll(this)"
           >${a.scores[ti]||0}</span>
-          <button class="sc-btn plus" onclick="adjScore(${ai},${ti},1)">+</button>
+          <button class="sc-btn plus" onclick="adjScore(${ai},${ti},5)">+</button>
         </div>
       </td>`).join('')}
       <td><button class="del-btn" onclick="delActivity(${ai})" title="Remove">✕</button></td>
