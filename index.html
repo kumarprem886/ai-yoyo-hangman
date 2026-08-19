@@ -1071,9 +1071,9 @@ function renderTeams(){
         onchange="renameTeam(${i},this.value)"
         title="Click to rename">
       <div class="team-score-row">
-        <button class="sc-btn" onclick="event.stopPropagation();addScore(${i},-1)">−</button>
+        <button class="sc-btn" onclick="event.stopPropagation();addScore(${i},-5)">−</button>
         <div class="t-score" id="ts-${i}">${t.score}</div>
-        <button class="sc-btn" onclick="event.stopPropagation();addScore(${i},1)">+</button>
+        <button class="sc-btn" onclick="event.stopPropagation();addScore(${i},5)">+</button>
       </div>
       <button class="reset-btn" onclick="event.stopPropagation();resetScores()" style="margin-top:auto;align-self:flex-end;font-size:.58rem">↺ Reset</button>
     </div>`).join('');
