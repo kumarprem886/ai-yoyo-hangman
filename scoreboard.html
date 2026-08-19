@@ -158,6 +158,71 @@ main{max-width:1060px;margin:0 auto;padding:30px 18px 70px}
 }
 .winner-bar.show{display:block}
 
+/* ── WINNER ANNOUNCE OVERLAY ── */
+.wa-ov{
+  position:fixed;inset:0;z-index:500;background:rgba(7,9,28,.93);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .5s ease
+}
+.wa-ov.show{opacity:1;pointer-events:all}
+#wa-confetti{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.wa-inner{position:relative;z-index:2;text-align:center;padding:20px}
+.wa-rays{
+  position:absolute;inset:0;z-index:1;
+  background:conic-gradient(from 0deg,transparent 0%,rgba(245,200,66,.04) 5%,transparent 10%,transparent 45%,rgba(245,200,66,.04) 50%,transparent 55%);
+  animation:waRaySpin 12s linear infinite
+}
+@keyframes waRaySpin{to{transform:rotate(360deg)}}
+.wa-medal{
+  font-size:5.5rem;line-height:1;display:block;
+  animation:waBounceIn .7s cubic-bezier(.36,2,.6,1) both;
+  animation-delay:.15s
+}
+@keyframes waBounceIn{
+  from{transform:scale(0) rotate(-30deg);opacity:0}
+  to{transform:scale(1) rotate(0deg);opacity:1}
+}
+.wa-tag{
+  font-size:.65rem;font-weight:900;letter-spacing:7px;color:var(--gold);
+  text-transform:uppercase;margin:16px 0 6px;
+  animation:waUp .5s ease both;animation-delay:.65s
+}
+@keyframes waUp{from{transform:translateY(18px);opacity:0}to{transform:translateY(0);opacity:1}}
+.wa-name{
+  font-size:3.2rem;font-weight:900;color:var(--gold);line-height:1.1;
+  animation:waPop .55s cubic-bezier(.36,1.5,.6,1) both;animation-delay:.9s;
+  text-shadow:0 0 60px rgba(245,200,66,.5)
+}
+@keyframes waPop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+.wa-pts{
+  font-size:1.1rem;color:var(--text2);margin-top:10px;font-weight:600;
+  animation:waUp .5s ease both;animation-delay:1.25s
+}
+.wa-tie-names{
+  display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:8px;
+  animation:waPop .55s cubic-bezier(.36,1.5,.6,1) both;animation-delay:.9s
+}
+.wa-tie-chip{
+  background:rgba(245,200,66,.12);border:1.5px solid rgba(245,200,66,.4);
+  border-radius:10px;padding:8px 18px;font-size:1.3rem;font-weight:900;color:var(--gold)
+}
+.wa-close-btn{
+  margin-top:34px;background:none;border:1.5px solid rgba(255,255,255,.2);
+  border-radius:12px;color:rgba(255,255,255,.45);font-size:.82rem;
+  padding:9px 26px;cursor:pointer;font-family:inherit;
+  transition:border-color .15s,color .15s;
+  animation:waUp .5s ease both;animation-delay:1.55s
+}
+.wa-close-btn:hover{border-color:rgba(255,255,255,.5);color:var(--text)}
+.announce-btn{
+  background:linear-gradient(135deg,rgba(245,200,66,.2),rgba(245,200,66,.08));
+  border:1.5px solid var(--gold);border-radius:10px;color:var(--gold);
+  font-size:.85rem;font-weight:800;padding:10px 20px;cursor:pointer;
+  font-family:inherit;transition:background .15s,transform .1s;letter-spacing:.3px
+}
+.announce-btn:hover{background:rgba(245,200,66,.2);transform:translateY(-1px)}
+.announce-btn:active{transform:scale(.97)}
+
 @media(max-width:680px){
   .leaderboard{grid-template-columns:repeat(2,1fr)}
   .site-title{font-size:1.4rem}
@@ -196,12 +261,23 @@ main{max-width:1060px;margin:0 auto;padding:30px 18px 70px}
 
   <button class="add-act-btn" onclick="addActivity()">＋ Add Activity / Game</button>
 
+  <div style="margin-bottom:16px">
+    <button class="announce-btn" onclick="announceWinner()">🏆 Announce Winner</button>
+  </div>
+
   <div class="controls-row">
     <button class="ctrl-btn" onclick="openNames()">✏️ Edit Team Names</button>
     <button class="ctrl-btn danger" onclick="resetAll()">↺ Reset All Scores</button>
     <a href="index.html" class="ctrl-btn" style="text-decoration:none;display:inline-flex;align-items:center">🎮 Back to Hangman</a>
   </div>
 </main>
+
+<!-- Winner announce overlay -->
+<div class="wa-ov" id="wa-ov">
+  <div class="wa-rays"></div>
+  <canvas id="wa-confetti"></canvas>
+  <div class="wa-inner" id="wa-inner"></div>
+</div>
 
 <!-- Edit names modal -->
 <div class="modal-bg" id="names-modal">
@@ -364,6 +440,85 @@ function saveNames(){
 
 document.getElementById('names-modal').addEventListener('click',function(e){
   if(e.target===this) closeNames();
+});
+
+// ── WINNER ANNOUNCEMENT ──
+let waFrame=null, waParticles=[];
+
+function announceWinner(){
+  const tot=totals();
+  const max=Math.max(...tot);
+  const winIdx=state.teams.reduce((best,_,i)=>tot[i]>tot[best]?i:best,0);
+  const winners=state.teams.filter((_,i)=>tot[i]===max);
+  const isTie=winners.length>1;
+
+  const inner=document.getElementById('wa-inner');
+  if(isTie){
+    inner.innerHTML=`
+      <div class="wa-medal" style="font-size:4rem">🤝</div>
+      <div class="wa-tag">It's a Tie!</div>
+      <div class="wa-tie-names">${winners.map(t=>`<div class="wa-tie-chip">${esc(t.name)}</div>`).join('')}</div>
+      <div class="wa-pts">${max} points each</div>
+      <button class="wa-close-btn" onclick="closeAnnounce()">✕ Close</button>`;
+  } else {
+    const w=winners[0];
+    inner.innerHTML=`
+      <div class="wa-medal">🥇</div>
+      <div class="wa-tag" style="color:${w.color}">Winner!</div>
+      <div class="wa-name" style="color:${w.color};text-shadow:0 0 60px ${w.color}80">${esc(w.name)}</div>
+      <div class="wa-pts">${max} points</div>
+      <button class="wa-close-btn" onclick="closeAnnounce()">✕ Close</button>`;
+  }
+
+  document.getElementById('wa-ov').classList.add('show');
+  startWAConfetti();
+}
+
+function closeAnnounce(){
+  document.getElementById('wa-ov').classList.remove('show');
+  stopWAConfetti();
+}
+
+function startWAConfetti(){
+  const cv=document.getElementById('wa-confetti');
+  cv.width=window.innerWidth; cv.height=window.innerHeight;
+  const ctx=cv.getContext('2d');
+  const colors=['#F5C842','#2DD4BF','#FF8C42','#FB7185','#A78BFA','#ffffff'];
+  waParticles=Array.from({length:140},()=>({
+    x:Math.random()*cv.width, y:-10-Math.random()*200,
+    w:7+Math.random()*7, h:3+Math.random()*4,
+    color:colors[Math.floor(Math.random()*colors.length)],
+    speed:2.5+Math.random()*3, angle:Math.random()*Math.PI*2,
+    spin:(Math.random()-.5)*.18, drift:(Math.random()-.5)*1.8,
+    opacity:.7+Math.random()*.3
+  }));
+  function frame(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    waParticles.forEach(p=>{
+      p.y+=p.speed; p.x+=p.drift; p.angle+=p.spin;
+      if(p.y>cv.height+20){p.y=-10;p.x=Math.random()*cv.width;}
+      ctx.save();
+      ctx.globalAlpha=p.opacity;
+      ctx.translate(p.x,p.y);
+      ctx.rotate(p.angle);
+      ctx.fillStyle=p.color;
+      ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+      ctx.restore();
+    });
+    waFrame=requestAnimationFrame(frame);
+  }
+  if(waFrame) cancelAnimationFrame(waFrame);
+  frame();
+}
+
+function stopWAConfetti(){
+  if(waFrame){cancelAnimationFrame(waFrame);waFrame=null;}
+  const cv=document.getElementById('wa-confetti');
+  cv.getContext('2d').clearRect(0,0,cv.width,cv.height);
+}
+
+document.getElementById('wa-ov').addEventListener('click',function(e){
+  if(e.target===this) closeAnnounce();
 });
 
 render();
