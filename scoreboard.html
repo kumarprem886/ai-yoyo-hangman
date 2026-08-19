@@ -41,6 +41,7 @@ main{max-width:1060px;margin:0 auto;padding:30px 18px 70px}
 .lb-card.gold-card{border-color:rgba(245,200,66,.4);background:rgba(245,200,66,.06)}
 .lb-card.gold-card::after{background:var(--gold);height:5px}
 .lb-rank{font-size:2rem;line-height:1;margin-bottom:8px}
+.lb-pos{font-size:.65rem;font-weight:900;letter-spacing:2px;color:var(--text3);margin-bottom:4px}
 .lb-name{font-size:.75rem;font-weight:700;letter-spacing:.5px;color:var(--text2);margin-bottom:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 4px}
 .lb-score{font-size:3rem;font-weight:900;line-height:1;color:var(--tc,var(--text))}
 .lb-card.gold-card .lb-score{color:var(--gold)}
@@ -349,7 +350,7 @@ function render(){
   document.getElementById('leaderboard').innerHTML=order.map((ti,pos)=>{
     const t=state.teams[ti];
     return `<div class="lb-card${pos===0?' gold-card':''}" style="--tc:${t.color}">
-      <div class="lb-rank">${RANKS[pos]}</div>
+      <div class="lb-pos">${pos+1}</div>
       <img class="lb-logo" src="${TEAM_DEFAULTS[ti].logo}" alt=""
         onerror="this.style.display='none'">
       <div class="lb-name">${esc(t.name)}</div>
@@ -490,16 +491,22 @@ function announceWinner(){
 
   const inner=document.getElementById('wa-inner');
   if(isTie){
+    const tieLogos=winners.map((_,j)=>{
+      const ti=state.teams.indexOf(winners[j]);
+      const idx=state.teams.findIndex(t=>t===winners[j]);
+      return `<img src="${TEAM_DEFAULTS[idx].logo}" style="width:70px;height:70px;object-fit:contain;border-radius:12px" onerror="this.style.display='none'">`;
+    }).join('');
     inner.innerHTML=`
-      <div class="wa-medal" style="font-size:4rem">🤝</div>
+      <div class="wa-medal" style="display:flex;gap:10px;justify-content:center">${tieLogos}</div>
       <div class="wa-tag">It's a Tie!</div>
       <div class="wa-tie-names">${winners.map(t=>`<div class="wa-tie-chip">${esc(t.name)}</div>`).join('')}</div>
       <div class="wa-pts">${max} points each</div>
       <button class="wa-close-btn" onclick="closeAnnounce()">✕ Close</button>`;
   } else {
     const w=winners[0];
+    const wi=state.teams.indexOf(w);
     inner.innerHTML=`
-      <div class="wa-medal">1️⃣</div>
+      <img class="wa-medal" src="${TEAM_DEFAULTS[wi].logo}" style="width:110px;height:110px;object-fit:contain;border-radius:18px;display:block;margin:0 auto">
       <div class="wa-tag" style="color:${w.color}">Winner!</div>
       <div class="wa-name" style="color:${w.color};text-shadow:0 0 60px ${w.color}80">${esc(w.name)}</div>
       <div class="wa-pts">${max} points</div>
