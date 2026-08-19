@@ -442,11 +442,21 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .ferr{font-size:.76rem;color:var(--red);text-align:center;min-height:16px}
 
 /* Session complete */
-.sc-stats{display:flex;gap:24px;justify-content:center;margin:14px 0 20px}
+.sc-stats{display:flex;gap:24px;justify-content:center;margin:14px 0 16px}
 .sc-stat .sv{font-size:2.2rem;font-weight:900;line-height:1}
 .sc-stat .sl{font-size:.62rem;color:var(--text2);text-transform:uppercase;letter-spacing:1.5px}
 .sc-stat.sw .sv{color:var(--teal)}
 .sc-stat.sl2 .sv{color:var(--red)}
+.sc-winner{font-size:1.1rem;font-weight:800;color:var(--gold);text-align:center;margin:4px 0 10px;min-height:1.4em}
+.sc-team-scores{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px;margin:0 0 18px;width:100%}
+.sc-ts{background:rgba(255,255,255,.04);border:1.5px solid var(--border);border-radius:10px;padding:8px 6px;text-align:center}
+.sc-ts.sc-ts-winner{border-color:var(--gold);background:rgba(245,200,66,.08)}
+.sc-ts-name{font-size:.65rem;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sc-ts-pts{font-size:1.7rem;font-weight:900;color:var(--text);line-height:1}
+.sc-ts.sc-ts-winner .sc-ts-pts{color:var(--gold)}
+.sc-ts-lbl{font-size:.55rem;color:var(--text3);margin-top:2px}
+.finish-game-btn{border-color:rgba(245,200,66,.4);color:var(--gold)}
+.finish-game-btn:hover{border-color:var(--gold);background:rgba(245,200,66,.1)}
 
 #confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:400;display:none}
 
@@ -541,6 +551,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
       <img class="game-logo" src="logo.png" alt="AI-YoYo"
            onerror="this.style.display='none'">
       <button class="icon-btn exit-btn" onclick="goSetup()" title="Back to word selection">✕ Exit</button>
+      <button class="icon-btn finish-game-btn" onclick="finishGame()" title="End game and see winner">🏁 Finish</button>
       <button class="set-btn" id="set-btn" title="Life symbol">⚙</button>
       <button class="icon-btn" id="stats-btn" onclick="toggleStats()" title="Show/hide stats">👁 Stats</button>
       <button class="icon-btn active" id="teams-btn" onclick="toggleTeams()" title="Show/hide teams">🏆 Teams</button>
@@ -612,13 +623,15 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 
 <!-- ══ Session complete modal ══ -->
 <div class="overlay" id="sc-ov">
-  <div class="mbox">
-    <div class="micon">🏁</div>
-    <div class="mtitle" style="color:var(--gold)">Session Complete!</div>
+  <div class="mbox" style="max-width:480px;width:92%">
+    <div class="micon" id="sc-icon">🏁</div>
+    <div class="mtitle" style="color:var(--gold)" id="sc-title">Game Over!</div>
+    <div class="sc-winner" id="sc-winner"></div>
     <div class="sc-stats">
       <div class="sc-stat sw"><div class="sv" id="sc-wins">0</div><div class="sl">Wins</div></div>
       <div class="sc-stat sl2"><div class="sv" id="sc-losses">0</div><div class="sl">Losses</div></div>
     </div>
+    <div class="sc-team-scores" id="sc-team-scores"></div>
     <div class="mbtns">
       <button class="btn btn-gold"  onclick="replaySession()">Play Again 🔄</button>
       <button class="btn btn-ghost" onclick="goSetup()">Change Words</button>
@@ -1141,7 +1154,7 @@ function guess(l){
   const lost=wrongCount>=6;
   if(won){
     wins++;streak++;updateScoreUI();qStatus[queueIdx]='won';gameOver=true;
-    addScore(activeTeam,1);
+    addScore(activeTeam, hintShown ? 5 : 10);
     quip('win');
     updateProgress(); setTimeout(()=>{launchConfetti();showResult(true);},380);
   } else if(lost){
@@ -1177,7 +1190,44 @@ document.getElementById('r-retry').addEventListener('click',()=>{
 function showSC(){
   document.getElementById('sc-wins').textContent=wins;
   document.getElementById('sc-losses').textContent=losses;
+
+  // Team scores
+  const maxScore=Math.max(...teams.map(t=>t.score));
+  const winners=teams.filter(t=>t.score===maxScore);
+  const tsEl=document.getElementById('sc-team-scores');
+  tsEl.innerHTML=teams.map(t=>{
+    const isWin=t.score===maxScore&&maxScore>0;
+    return `<div class="sc-ts${isWin?' sc-ts-winner':''}">
+      <div class="sc-ts-name">${t.name}</div>
+      <div class="sc-ts-pts">${t.score}</div>
+      <div class="sc-ts-lbl">pts</div>
+    </div>`;
+  }).join('');
+
+  // Winner announcement
+  const winEl=document.getElementById('sc-winner');
+  if(maxScore===0){
+    winEl.textContent='';
+    document.getElementById('sc-icon').textContent='🏁';
+    document.getElementById('sc-title').textContent='Game Over!';
+  } else if(winners.length===1){
+    winEl.textContent='🏆 '+winners[0].name+' wins!';
+    document.getElementById('sc-icon').textContent='🥇';
+    document.getElementById('sc-title').textContent='We have a winner!';
+    launchConfetti();
+  } else {
+    winEl.textContent='🤝 It\'s a tie! '+winners.map(t=>t.name).join(' & ');
+    document.getElementById('sc-icon').textContent='🏁';
+    document.getElementById('sc-title').textContent='Game Over!';
+  }
+
   document.getElementById('sc-ov').classList.add('open');
+}
+
+function finishGame(){
+  ['result-ov'].forEach(id=>document.getElementById(id).classList.remove('open'));
+  stopConfetti();
+  showSC();
 }
 
 // Prev / Next
