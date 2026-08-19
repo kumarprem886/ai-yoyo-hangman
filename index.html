@@ -239,14 +239,14 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .teams-bar.open{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;align-items:stretch}
 .team-card{min-width:0;
   background:var(--surf);border:2px solid var(--border);border-radius:12px;
-  padding:10px 12px;display:flex;flex-direction:column;gap:6px;
+  padding:10px 12px;display:flex;flex-direction:column;gap:6px;align-items:center;
   transition:all .18s;cursor:pointer;position:relative}
 .team-card:hover{border-color:var(--border2)}
 .team-card.active-team{border-color:var(--gold);background:rgba(245,200,66,.06);
   box-shadow:0 0 12px rgba(245,200,66,.12)}
 .team-name-inp{background:transparent;border:none;color:var(--text);
   font-size:.88rem;font-weight:700;width:100%;outline:none;
-  cursor:pointer;letter-spacing:.3px;font-family:inherit}
+  cursor:pointer;letter-spacing:.3px;font-family:inherit;text-align:center}
 .team-name-inp:focus{cursor:text;border-bottom:1px dashed var(--gold)}
 .playing-badge{position:absolute;top:6px;right:8px;
   font-size:.55rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;
@@ -256,7 +256,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .setup-team-cell{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;min-width:0}
 .setup-team-logo{width:44px;height:44px;object-fit:contain;border-radius:8px}
 .setup-team-cell .team-name-setup{flex:unset;width:100%}
-.team-score-row{display:flex;align-items:center;gap:8px}
+.team-score-row{display:flex;align-items:center;gap:8px;justify-content:center}
 .t-score{font-size:1.6rem;font-weight:900;color:var(--text);min-width:32px;text-align:center;line-height:1}
 .team-card.active-team .t-score{color:var(--gold);text-shadow:0 0 10px rgba(245,200,66,.4)}
 .sc-btn{background:var(--surf2);border:1.5px solid var(--border2);border-radius:6px;
