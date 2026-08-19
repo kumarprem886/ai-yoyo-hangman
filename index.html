@@ -284,6 +284,14 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .game-body{flex:1;display:flex;gap:22px;padding:22px 26px 20px;
   max-width:960px;margin:0 auto;width:100%;align-items:flex-start}
 
+/* ── Game background layer ── */
+.game-bg-layer{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:url('bg.png') center/cover no-repeat;
+  opacity:0;transition:opacity .7s ease
+}
+.game-bg-layer.show{opacity:.13}
+
 /* ── Splash overlay ── */
 .splash-ov{
   position:fixed;inset:0;z-index:999;
@@ -452,6 +460,7 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 </style>
 </head>
 <body>
+<div class="game-bg-layer" id="game-bg-layer"></div>
 <canvas id="confetti-canvas"></canvas>
 
 <!-- Splash overlay -->
@@ -975,8 +984,8 @@ function showSplash(cb){
   const ov=document.getElementById('splash-ov');
   ov.classList.add('show');
   setTimeout(()=>{
-    ov.classList.remove('show');
-    setTimeout(cb,450);
+    cb();                                    // set up game while splash still covers
+    setTimeout(()=>ov.classList.remove('show'),80); // then fade out to reveal game
   },1700);
 }
 
@@ -1014,6 +1023,7 @@ function launchGameInPage(q){
   wins=0;losses=0;streak=0; activeTeam=0; updateScoreUI();
   document.getElementById('setup-screen').style.display='none';
   document.getElementById('game-screen').classList.add('visible');
+  document.getElementById('game-bg-layer').classList.add('show');
   buildKeyboard(); renderTeams(); loadWord(0);
 }
 
@@ -1079,6 +1089,7 @@ function toggleStats(){
 function goSetup(){
   ['sc-ov','result-ov'].forEach(id=>document.getElementById(id).classList.remove('open'));
   document.getElementById('game-screen').classList.remove('visible');
+  document.getElementById('game-bg-layer').classList.remove('show');
   document.getElementById('setup-screen').style.display='';
   stopConfetti();
 }
