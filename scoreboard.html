@@ -45,6 +45,7 @@ main{max-width:1060px;margin:0 auto;padding:30px 18px 70px}
 .lb-score{font-size:3rem;font-weight:900;line-height:1;color:var(--tc,var(--text))}
 .lb-card.gold-card .lb-score{color:var(--gold)}
 .lb-pts{font-size:.55rem;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-top:4px}
+.lb-logo{width:60px;height:60px;object-fit:contain;border-radius:10px;margin:6px 0 2px}
 
 /* ── TABLE ── */
 .act-wrap{background:var(--surf);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:14px}
@@ -299,6 +300,12 @@ main{max-width:1060px;margin:0 auto;padding:30px 18px 70px}
 'use strict';
 const TC = ['#FF8C42','#2DD4BF','#A78BFA','#FB7185'];
 const RANKS = ['1️⃣','2️⃣','3️⃣','4️⃣'];
+const TEAM_DEFAULTS = [
+  {name:'Gemini Jammuni', logo:'team1.png'},
+  {name:'Claude Naadu',   logo:'team2.png'},
+  {name:'Crow Pilot',     logo:'team3.png'},
+  {name:'Chat Cappi Tea', logo:'team4.png'}
+];
 
 let state = load();
 
@@ -308,7 +315,7 @@ function load(){
     if(s&&s.teams&&s.activities) return s;
   }catch(e){}
   return {
-    teams:['Team Coral','Team Teal','Team Mango','Team Bloom'].map((n,i)=>({name:n,color:TC[i]})),
+    teams:TEAM_DEFAULTS.map((t,i)=>({name:t.name,color:TC[i]})),
     activities:[{name:'Hangman',scores:[0,0,0,0]}]
   };
 }
@@ -343,6 +350,8 @@ function render(){
     const t=state.teams[ti];
     return `<div class="lb-card${pos===0?' gold-card':''}" style="--tc:${t.color}">
       <div class="lb-rank">${RANKS[pos]}</div>
+      <img class="lb-logo" src="${TEAM_DEFAULTS[ti].logo}" alt=""
+        onerror="this.style.display='none'">
       <div class="lb-name">${esc(t.name)}</div>
       <div class="lb-score">${tot[ti]}</div>
       <div class="lb-pts">points</div>
@@ -352,10 +361,13 @@ function render(){
   // Table header
   document.getElementById('act-thead').innerHTML=`<tr>
     <th class="lc">Activity</th>
-    ${state.teams.map(t=>`<th>
-      <span class="th-chip">
-        <span class="th-dot" style="background:${t.color}"></span>${esc(t.name)}
-      </span>
+    ${state.teams.map((t,i)=>`<th>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+        <img src="${TEAM_DEFAULTS[i].logo}" style="width:32px;height:32px;object-fit:contain;border-radius:6px" onerror="this.style.display='none'">
+        <span class="th-chip">
+          <span class="th-dot" style="background:${t.color}"></span>${esc(t.name)}
+        </span>
+      </div>
     </th>`).join('')}
     <th></th>
   </tr>`;

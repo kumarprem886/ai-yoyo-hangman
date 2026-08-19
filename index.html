@@ -252,6 +252,9 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   font-size:.55rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;
   color:var(--gold);opacity:0}
 .team-card.active-team .playing-badge{opacity:1}
+.team-logo-img{width:48px;height:48px;object-fit:contain;border-radius:8px;align-self:center}
+.setup-team-cell{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;width:0}
+.setup-team-logo{width:44px;height:44px;object-fit:contain;border-radius:8px}
 .team-score-row{display:flex;align-items:center;gap:8px}
 .t-score{font-size:1.6rem;font-weight:900;color:var(--text);min-width:32px;text-align:center;line-height:1}
 .team-card.active-team .t-score{color:var(--gold);text-shadow:0 0 10px rgba(245,200,66,.4)}
@@ -858,8 +861,14 @@ const SYM_OPTS=['❤️','🪀','⭐','🤖','⚡'];
 let lifeSym=localStorage.getItem('lifeSym')||'❤️';
 
 // Teams
+const TEAM_DEFAULTS=[
+  {name:'Gemini Jammuni',logo:'team1.png'},
+  {name:'Claude Naadu',  logo:'team2.png'},
+  {name:'Crow Pilot',    logo:'team3.png'},
+  {name:'Chat Cappi Tea',logo:'team4.png'}
+];
 let teams=JSON.parse(localStorage.getItem('hangman_teams')||'null')||
-  [{name:'Team 1',score:0},{name:'Team 2',score:0},{name:'Team 3',score:0},{name:'Team 4',score:0}];
+  TEAM_DEFAULTS.map(t=>({name:t.name,score:0}));
 let activeTeam=0;
 let statsVisible=false;
 let teamsVisible=true;
@@ -1054,6 +1063,8 @@ function renderTeams(){
   bar.innerHTML=teams.map((t,i)=>`
     <div class="team-card${i===activeTeam?' active-team':''}" onclick="selectTeam(${i})">
       <span class="playing-badge">● PLAYING</span>
+      <img class="team-logo-img" src="${TEAM_DEFAULTS[i].logo}" alt=""
+        onerror="this.style.display='none'">
       <input class="team-name-inp" value="${t.name}"
         onclick="event.stopPropagation()"
         onchange="renameTeam(${i},this.value)"
@@ -1076,10 +1087,14 @@ function renderSetupTeams(){
   const c=document.getElementById('setup-team-inputs');
   if(!c) return;
   c.innerHTML=teams.map((t,i)=>
-    `<input class="team-name-setup" value="${t.name.replace(/"/g,'&quot;')}"
-      placeholder="Team ${i+1}"
-      onchange="renameTeam(${i},this.value)"
-      title="Team ${i+1} name">`
+    `<div class="setup-team-cell">
+      <img class="setup-team-logo" src="${TEAM_DEFAULTS[i].logo}" alt=""
+        onerror="this.style.display='none'">
+      <input class="team-name-setup" value="${t.name.replace(/"/g,'&quot;')}"
+        placeholder="Team ${i+1}"
+        onchange="renameTeam(${i},this.value)"
+        title="Team ${i+1} name">
+    </div>`
   ).join('');
 }
 function renameTeam(i,v){
