@@ -827,7 +827,7 @@ function showFinalResult() {
     <div class="win-name" style="color:${w.color};text-shadow:0 0 40px ${w.color}80">${w.name}</div>
     <div class="win-peak">${maxPeak.toFixed(1)} dB Level</div>
     <div class="results-grid">${cards}</div>
-    <button class="sb-push-btn" onclick="pushToScoreboard()">📊 Send to Main Scoreboard</button>
+    <button class="sb-push-btn" onclick="pushToScoreboard()">📊 Main Scoreboard &nbsp;·&nbsp; +10 pts to ${w.name}</button>
     <div class="win-btns">
       <button class="btn-gold" onclick="resetGame()">Play Again 🔄</button>
       <button class="btn-ghost" onclick="closeWin()">Close</button>
@@ -843,9 +843,24 @@ function pushToScoreboard() {
   try { sb = JSON.parse(localStorage.getItem('chennai_outing_sb')); } catch(e) {}
   if (!sb || !sb.activities) sb = {teams:[], activities:[]};
   sb.teams = TEAMS.map((t,i) => ({name:t.name, color:TC[i]}));
-  let act = sb.activities.find(a => a.name === 'Decibel');
-  if (!act) { act = {name:'Decibel', scores:[0,0,0,0]}; sb.activities.push(act); }
-  peaks.forEach((p,i) => { act.scores[i] = p !== null ? Math.round(p) : 0; });
+
+  // Find existing activity whose name contains "decibel" (case-insensitive), or create "Decibel Meter"
+  let act = sb.activities.find(a => a.name.toLowerCase().includes('decibel'));
+  if (!act) {
+    act = {name:'Decibel Meter', scores:[0,0,0,0]};
+    sb.activities.push(act);
+  }
+  if (!act.scores) act.scores = [0,0,0,0];
+  while (act.scores.length < 4) act.scores.push(0);
+
+  // Add 10 points to the winning team
+  const played = peaks.filter(p => p !== null);
+  if (played.length > 0) {
+    const maxPeak = Math.max(...played);
+    const winIdx  = peaks.indexOf(maxPeak);
+    act.scores[winIdx] = (act.scores[winIdx] || 0) + 10;
+  }
+
   localStorage.setItem('chennai_outing_sb', JSON.stringify(sb));
   window.location.href = 'scoreboard.html';
 }
