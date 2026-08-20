@@ -10,253 +10,327 @@
   --bg:#07091C;--surf:#0D1035;--surf2:#141740;
   --border:rgba(255,255,255,.1);
   --gold:#F5C842;--teal:#2DD4BF;--text:#F0F0FF;
-  --text2:rgba(240,240,255,.6);--text3:rgba(240,240,255,.35);
-  --red:#FB7185;--green:#4ECDC4;--orange:#FF8C42;--purple:#A78BFA;
+  --text2:rgba(240,240,255,.6);--text3:rgba(240,240,255,.3);
+  --red:#FB7185;--orange:#FF8C42;--purple:#A78BFA;
 }
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;overflow:hidden}
 
 /* ── HEADER ── */
 .page-header{
-  position:relative;overflow:hidden;padding:28px 24px 24px;
-  text-align:center;border-bottom:1px solid var(--border)
+  display:flex;align-items:center;gap:12px;padding:12px 20px;
+  border-bottom:1px solid var(--border);background:var(--surf);
+  flex-shrink:0
 }
-.hdr-logo-bg{position:absolute;inset:0;background:url('bg.png') center/30% no-repeat;opacity:.06;pointer-events:none}
-.hdr-fade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,9,28,0) 0%,rgba(7,9,28,.7) 100%);pointer-events:none}
-.hdr-inner{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
-.hdr-logo{height:52px;object-fit:contain}
-.hdr-titles .t1{font-size:1.5rem;font-weight:900;color:var(--gold)}
-.hdr-titles .t2{font-size:.72rem;color:var(--text2);letter-spacing:2.5px;text-transform:uppercase;margin-top:2px}
+.hdr-logo{height:38px;object-fit:contain}
+.hdr-titles .t1{font-size:1.1rem;font-weight:900;color:var(--gold);line-height:1.1}
+.hdr-titles .t2{font-size:.58rem;color:var(--text3);letter-spacing:2.5px;text-transform:uppercase}
+.hdr-nav{margin-left:auto;display:flex;gap:8px}
+.hdr-nav a{color:var(--text3);font-size:.72rem;text-decoration:none;padding:5px 10px;border:1px solid var(--border);border-radius:8px;transition:color .15s,border-color .15s}
+.hdr-nav a:hover{color:var(--text);border-color:rgba(255,255,255,.3)}
 
 /* ── SCREENS ── */
-.screen{display:none;min-height:calc(100vh - 110px);flex-direction:column;align-items:center}
+.screen{display:none;flex-direction:column;height:calc(100vh - 63px)}
 .screen.active{display:flex}
 
-/* ── SETUP SCREEN ── */
-.setup-wrap{width:100%;max-width:860px;padding:28px 18px}
-.sec-lbl{font-size:.6rem;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:var(--text3);margin-bottom:12px;text-align:center}
+/* ═══════════════════════════════════════
+   SETUP SCREEN
+═══════════════════════════════════════ */
+#setup-screen{overflow-y:auto;align-items:center;padding:24px 16px}
+.setup-inner{width:100%;max-width:820px}
 
-.team-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+.sec-lbl{font-size:.58rem;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--text3);margin-bottom:12px;text-align:center}
+
+.team-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
 .team-tile{
-  background:var(--surf);border:2px solid var(--border);border-radius:16px;
-  padding:16px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;
-  cursor:pointer;transition:all .18s;position:relative
+  background:var(--surf);border:2px solid var(--border);border-radius:14px;
+  padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:7px;
+  cursor:pointer;transition:border-color .15s,background .15s;position:relative
 }
-.team-tile:hover{border-color:rgba(255,255,255,.25)}
-.team-tile.selected{border-color:var(--gold);background:rgba(245,200,66,.07);box-shadow:0 0 18px rgba(245,200,66,.15)}
-.team-tile.done{opacity:.45;cursor:default}
-.team-tile.done::after{content:'✓ Done';position:absolute;top:8px;right:8px;font-size:.55rem;font-weight:800;color:var(--teal);letter-spacing:1px}
-.tile-logo{width:80px;height:80px;object-fit:contain;border-radius:12px}
-.tile-name{font-size:.75rem;font-weight:700;color:var(--text2);text-align:center;line-height:1.3}
-.tile-peak{font-size:1.1rem;font-weight:900;color:var(--gold);min-height:1.3em;text-align:center}
-.tile-peak.no-score{color:var(--text3);font-size:.7rem;font-weight:500}
+.team-tile:hover:not(.done){border-color:rgba(255,255,255,.3)}
+.team-tile.selected{border-color:var(--gold);background:rgba(245,200,66,.06);box-shadow:0 0 20px rgba(245,200,66,.12)}
+.team-tile.done{opacity:.5;cursor:default}
+.team-tile.done::after{content:'✓';position:absolute;top:8px;right:10px;color:var(--teal);font-weight:900;font-size:.9rem}
+.tile-logo{width:72px;height:72px;object-fit:contain;border-radius:10px}
+.tile-name{font-size:.7rem;font-weight:700;color:var(--text2);text-align:center}
+.tile-peak{font-size:1.2rem;font-weight:900;color:var(--gold);min-height:1.4em;text-align:center}
+.tile-peak.empty{color:var(--text3);font-size:.65rem;font-weight:500}
+
+.settings-bar{
+  display:flex;align-items:center;justify-content:center;gap:20px;
+  background:var(--surf);border:1px solid var(--border);border-radius:12px;
+  padding:14px 20px;margin-bottom:16px;flex-wrap:wrap
+}
+.setting-field{display:flex;align-items:center;gap:10px}
+.setting-field label{font-size:.75rem;color:var(--text2);white-space:nowrap}
+.setting-field input[type=number]{
+  width:72px;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;
+  color:var(--text);font-size:.95rem;font-weight:700;padding:6px 10px;
+  text-align:center;font-family:inherit;outline:none
+}
+.setting-field input[type=number]:focus{border-color:var(--gold)}
+.setting-field span{font-size:.72rem;color:var(--text3)}
 
 .start-btn{
-  display:block;width:100%;max-width:340px;margin:0 auto 28px;
-  background:var(--gold);color:#07091C;border:none;border-radius:14px;
-  font-size:1.1rem;font-weight:900;padding:16px;cursor:pointer;
-  font-family:inherit;transition:transform .12s,box-shadow .12s;
-  letter-spacing:.3px
+  display:block;width:100%;background:var(--gold);color:#07091C;
+  border:none;border-radius:12px;font-size:1rem;font-weight:900;
+  padding:14px;cursor:pointer;font-family:inherit;
+  transition:transform .12s,box-shadow .12s;letter-spacing:.3px
 }
-.start-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(245,200,66,.35)}
+.start-btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(245,200,66,.3)}
 .start-btn:disabled{opacity:.3;cursor:not-allowed;transform:none;box-shadow:none}
 
-/* ── MEASURE SCREEN ── */
-.measure-wrap{width:100%;max-width:520px;padding:24px 18px;display:flex;flex-direction:column;align-items:center;gap:20px}
+/* ═══════════════════════════════════════
+   MEASURE SCREEN
+═══════════════════════════════════════ */
+#measure-screen{overflow:hidden}
 
-.curr-team-card{
+/* Team strip */
+.team-strip{
+  display:flex;gap:8px;padding:10px 14px;background:var(--surf);
+  border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto
+}
+.strip-tile{
+  display:flex;align-items:center;gap:8px;padding:6px 12px;
+  border:1.5px solid var(--border);border-radius:10px;flex-shrink:0;
+  transition:border-color .2s,background .2s;min-width:0
+}
+.strip-tile.active{border-color:var(--gold);background:rgba(245,200,66,.06)}
+.strip-tile.done-t{border-color:rgba(45,212,191,.3);background:rgba(45,212,191,.05)}
+.strip-logo{width:32px;height:32px;object-fit:contain;border-radius:6px}
+.strip-info{display:flex;flex-direction:column;min-width:0}
+.strip-name{font-size:.65rem;font-weight:700;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px}
+.strip-score{font-size:.85rem;font-weight:900;color:var(--gold)}
+.strip-score.pending{color:var(--text3);font-size:.6rem;font-weight:500}
+
+/* Main layout */
+.meas-body{
+  display:grid;
+  grid-template-columns:88px 1fr 2.2fr;
+  gap:10px;padding:10px;
+  flex:1;min-height:0
+}
+
+/* VU column */
+.vu-col{
   display:flex;flex-direction:column;align-items:center;gap:8px;
-  background:var(--surf);border:2px solid var(--gold);border-radius:18px;
-  padding:16px 28px;width:100%;text-align:center
+  background:var(--surf);border:1px solid var(--border);border-radius:12px;
+  padding:10px 6px;overflow:hidden;min-height:0
 }
-.curr-team-logo{width:72px;height:72px;object-fit:contain;border-radius:10px}
-.curr-team-name{font-size:1.1rem;font-weight:800;color:var(--gold)}
-
-/* ── COUNTDOWN ── */
-.countdown-wrap{display:flex;align-items:center;justify-content:center;width:200px;height:200px}
-.countdown-num{font-size:7rem;font-weight:900;color:var(--gold);animation:cdPulse .8s ease infinite;text-shadow:0 0 40px rgba(245,200,66,.5)}
-@keyframes cdPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
-
-/* ── METER ── */
-.meter-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%}
-.meter-svg-wrap{position:relative;width:280px}
-.meter-svg-wrap svg{width:100%;overflow:visible}
-.db-big{
-  font-size:3.2rem;font-weight:900;text-align:center;line-height:1;
-  transition:color .1s
+#vu-canvas{flex:1;width:100%;min-height:0}
+.vu-cur-db{
+  font-size:1.4rem;font-weight:900;line-height:1;text-align:center;
+  font-variant-numeric:tabular-nums
 }
-.db-label{font-size:.65rem;color:var(--text3);letter-spacing:2px;text-transform:uppercase;text-align:center}
-.peak-row{
-  display:flex;align-items:center;gap:10px;background:var(--surf);
-  border:1px solid var(--border);border-radius:10px;padding:8px 18px;
-  font-size:.85rem;color:var(--text2)
+.vu-unit{font-size:.55rem;color:var(--text3);letter-spacing:2px;text-transform:uppercase;text-align:center}
+
+/* Center column */
+.center-col{display:flex;flex-direction:column;gap:8px;min-height:0}
+
+.stat-row{display:flex;gap:6px;flex-shrink:0}
+.stat-card{
+  flex:1;background:var(--surf);border:1px solid var(--border);border-radius:10px;
+  padding:10px 8px;text-align:center
 }
-.peak-val{font-size:1.3rem;font-weight:900;color:var(--gold);margin-left:4px}
+.stat-card.gold-card{border-color:rgba(245,200,66,.35)}
+.stat-val{font-size:1.4rem;font-weight:900;font-variant-numeric:tabular-nums;color:var(--text)}
+.stat-card.gold-card .stat-val{color:var(--gold)}
+.stat-lbl{font-size:.5rem;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-top:2px}
 
-/* ── TIMER ── */
-.timer-wrap{position:relative;width:80px;height:80px;flex-shrink:0}
-.timer-svg{width:80px;height:80px}
-.timer-num-lbl{
-  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  font-size:1.6rem;font-weight:900;color:var(--text)
+.freq-wrap{
+  flex:1;background:var(--surf);border:1px solid var(--border);border-radius:10px;
+  padding:8px 10px;display:flex;flex-direction:column;gap:4px;overflow:hidden;min-height:0
 }
+.freq-title{font-size:.55rem;color:var(--text3);letter-spacing:2px;text-transform:uppercase;flex-shrink:0}
+#freq-canvas{flex:1;width:100%;min-height:0}
 
-/* ── PULSE BAR (live waveform feel) ── */
-.pulse-bars{display:flex;align-items:flex-end;gap:3px;height:50px;justify-content:center;margin-top:4px}
-.pulse-bar{width:6px;border-radius:3px;background:var(--teal);transition:height .08s ease;min-height:4px}
-
-/* ── MIC BUTTON ── */
-.mic-btn{
-  width:72px;height:72px;border-radius:50%;border:2.5px solid var(--red);
-  background:rgba(251,113,133,.12);color:var(--red);font-size:1.5rem;
-  cursor:pointer;font-family:inherit;transition:all .15s;flex-shrink:0
+.timer-stop-row{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.timer-pill{
+  flex:1;background:var(--surf);border:1px solid var(--border);border-radius:10px;
+  padding:10px;display:flex;align-items:center;gap:10px;overflow:hidden;position:relative
 }
-.mic-btn:hover{background:rgba(251,113,133,.25)}
-.mic-btn.recording{border-color:var(--red);background:var(--red);color:#fff;animation:micPulse 1s ease infinite}
-@keyframes micPulse{0%,100%{box-shadow:0 0 0 0 rgba(251,113,133,.5)}50%{box-shadow:0 0 0 12px rgba(251,113,133,0)}}
+.timer-track{position:absolute;bottom:0;left:0;height:3px;background:var(--gold);transition:width .1s linear;border-radius:0 0 10px 10px}
+.timer-time{font-size:1.5rem;font-weight:900;font-variant-numeric:tabular-nums;color:var(--gold);line-height:1}
+.timer-lbl{font-size:.55rem;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase}
+.stop-btn{
+  background:rgba(251,113,133,.12);border:1.5px solid rgba(251,113,133,.4);border-radius:10px;
+  color:var(--red);font-size:.8rem;font-weight:800;padding:10px 14px;cursor:pointer;font-family:inherit;
+  white-space:nowrap;transition:background .15s
+}
+.stop-btn:hover{background:rgba(251,113,133,.25)}
 
-.meas-controls{display:flex;align-items:center;justify-content:center;gap:20px;width:100%}
+/* Right column — history */
+.hist-col{
+  background:var(--surf);border:1px solid var(--border);border-radius:12px;
+  display:flex;flex-direction:column;gap:4px;padding:10px 12px;overflow:hidden;min-height:0
+}
+.hist-title{font-size:.55rem;color:var(--text3);letter-spacing:2px;text-transform:uppercase;flex-shrink:0;display:flex;justify-content:space-between}
+#hist-canvas{flex:1;width:100%;min-height:0}
 
-/* ── WINNER OVERLAY ── */
-.overlay{
-  position:fixed;inset:0;background:rgba(7,9,28,.92);z-index:200;
+/* Countdown overlay */
+.countdown-ov{
+  position:absolute;inset:0;background:rgba(7,9,28,.92);z-index:50;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px
+}
+.countdown-ov.hidden{display:none}
+.cd-team{font-size:.75rem;color:var(--text2);letter-spacing:2px;text-transform:uppercase}
+.cd-num{font-size:8rem;font-weight:900;color:var(--gold);animation:cdPulse .85s ease infinite;text-shadow:0 0 60px rgba(245,200,66,.5);line-height:1}
+@keyframes cdPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.12);opacity:.9}}
+
+/* ═══════════════════════════════════════
+   WINNER OVERLAY
+═══════════════════════════════════════ */
+.win-ov{
+  position:fixed;inset:0;background:rgba(7,9,28,.94);z-index:200;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  opacity:0;pointer-events:none;transition:opacity .4s
+  opacity:0;pointer-events:none;transition:opacity .4s;overflow-y:auto;padding:20px
 }
-.overlay.open{opacity:1;pointer-events:all}
-#win-confetti{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-.win-inner{position:relative;z-index:2;text-align:center;padding:24px;max-width:460px}
-.win-logo{width:120px;height:120px;object-fit:contain;border-radius:18px;margin:0 auto 16px;display:block;animation:wBounce .7s cubic-bezier(.36,2,.6,1) both;animation-delay:.15s}
+.win-ov.open{opacity:1;pointer-events:all}
+#win-confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
+.win-card{
+  position:relative;z-index:2;text-align:center;
+  background:var(--surf);border:1px solid var(--border);border-radius:20px;
+  padding:28px 32px;max-width:520px;width:100%
+}
+.win-logo{width:96px;height:96px;object-fit:contain;border-radius:14px;margin:0 auto 12px;display:block;animation:wBounce .6s cubic-bezier(.36,2,.6,1) both .1s}
 @keyframes wBounce{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
-.win-tag{font-size:.65rem;font-weight:900;letter-spacing:6px;color:var(--gold);text-transform:uppercase;animation:wUp .5s ease both;animation-delay:.65s}
-@keyframes wUp{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
-.win-name{font-size:2.6rem;font-weight:900;color:var(--gold);text-shadow:0 0 50px rgba(245,200,66,.5);margin:8px 0;animation:wPop .55s cubic-bezier(.36,1.5,.6,1) both;animation-delay:.9s}
-@keyframes wPop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
-.win-peak{font-size:1rem;color:var(--text2);animation:wUp .5s ease both;animation-delay:1.1s;margin-bottom:28px}
-.win-close{
-  background:none;border:1.5px solid rgba(255,255,255,.2);border-radius:12px;
-  color:rgba(255,255,255,.5);font-size:.82rem;padding:10px 28px;
-  cursor:pointer;font-family:inherit;transition:border-color .15s,color .15s;
-  animation:wUp .5s ease both;animation-delay:1.4s
+.win-tag{font-size:.6rem;font-weight:900;letter-spacing:6px;color:var(--gold);text-transform:uppercase;animation:wUp .4s ease both .6s}
+@keyframes wUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.win-name{font-size:2.1rem;font-weight:900;color:var(--gold);text-shadow:0 0 40px rgba(245,200,66,.4);margin:6px 0;animation:wPop .5s cubic-bezier(.36,1.5,.6,1) both .85s}
+@keyframes wPop{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+.win-peak{font-size:.9rem;color:var(--text2);animation:wUp .4s ease both 1s;margin-bottom:18px}
+
+.results-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;animation:wUp .4s ease both 1.1s}
+.res-card{background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:10px 6px;text-align:center}
+.res-card.winner-card{border-color:var(--gold);background:rgba(245,200,66,.07)}
+.res-logo{width:44px;height:44px;object-fit:contain;border-radius:7px;margin-bottom:5px}
+.res-name{font-size:.55rem;color:var(--text2);font-weight:700;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.res-score{font-size:1.2rem;font-weight:900}
+.res-score-lbl{font-size:.45rem;color:var(--text3);letter-spacing:1px;text-transform:uppercase}
+
+.sb-push-btn{
+  display:block;width:100%;background:var(--teal);color:#07091C;border:none;
+  border-radius:10px;font-weight:900;font-size:.82rem;padding:10px;
+  cursor:pointer;font-family:inherit;margin-bottom:8px;animation:wUp .4s ease both 1.2s
 }
-.win-close:hover{border-color:rgba(255,255,255,.5);color:var(--text)}
+.win-btns{display:flex;gap:8px;justify-content:center;animation:wUp .4s ease both 1.3s}
+.btn-gold{background:var(--gold);color:#07091C;border:none;border-radius:10px;font-weight:900;font-size:.85rem;padding:10px 20px;cursor:pointer;font-family:inherit}
+.btn-ghost{background:none;border:1.5px solid var(--border);border-radius:10px;color:var(--text2);font-size:.85rem;padding:10px 20px;cursor:pointer;font-family:inherit}
+.btn-ghost:hover{border-color:rgba(255,255,255,.35);color:var(--text)}
 
-/* final results table */
-.results-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;width:100%;margin:16px 0 24px}
-.res-card{background:var(--surf);border:1.5px solid var(--border);border-radius:14px;padding:14px 8px;text-align:center}
-.res-card.winner{border-color:var(--gold);background:rgba(245,200,66,.08)}
-.res-logo{width:56px;height:56px;object-fit:contain;border-radius:8px;margin-bottom:6px}
-.res-name{font-size:.65rem;color:var(--text2);font-weight:700;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.res-score{font-size:1.4rem;font-weight:900;color:var(--text)}
-.res-card.winner .res-score{color:var(--gold)}
-.res-lbl{font-size:.52rem;color:var(--text3);letter-spacing:1px;text-transform:uppercase}
-.overlay-btns{display:flex;gap:10px;justify-content:center}
-.btn-gold{background:var(--gold);color:#07091C;border:none;border-radius:12px;font-weight:800;font-size:.9rem;padding:11px 22px;cursor:pointer;font-family:inherit}
-.btn-ghost{background:none;border:1.5px solid var(--border);border-radius:12px;color:var(--text2);font-size:.9rem;padding:11px 22px;cursor:pointer;font-family:inherit}
-.btn-ghost:hover{border-color:rgba(255,255,255,.4);color:var(--text)}
-
-@media(max-width:640px){
-  .team-grid{grid-template-columns:repeat(2,1fr)}
+@media(max-width:700px){
+  .meas-body{grid-template-columns:60px 1fr;grid-template-rows:auto 1fr}
+  .hist-col{grid-column:1/-1}
   .results-grid{grid-template-columns:repeat(2,1fr)}
-  .meter-svg-wrap{width:220px}
-  .db-big{font-size:2.4rem}
+  .team-grid{grid-template-columns:repeat(2,1fr)}
 }
 </style>
 </head>
 <body>
 
 <header class="page-header">
-  <div class="hdr-logo-bg"></div>
-  <div class="hdr-fade"></div>
-  <div class="hdr-inner">
-    <img src="logo.png" class="hdr-logo" alt="" onerror="this.style.display='none'">
-    <div class="hdr-titles">
-      <div class="t1">Decibel Challenge</div>
-      <div class="t2">Chennai Off-Work Day Outing</div>
-    </div>
+  <img src="logo.png" class="hdr-logo" alt="" onerror="this.style.display='none'">
+  <div class="hdr-titles">
+    <div class="t1">Decibel Challenge</div>
+    <div class="t2">Chennai Off-Work Day Outing</div>
   </div>
+  <nav class="hdr-nav">
+    <a href="index.html">🎮 Hangman</a>
+    <a href="scoreboard.html">📊 Scoreboard</a>
+  </nav>
 </header>
 
 <!-- ══ SETUP SCREEN ══ -->
 <div class="screen active" id="setup-screen">
-  <div class="setup-wrap">
-    <div class="sec-lbl">Select a team and hit Start</div>
+  <div class="setup-inner">
+    <div class="sec-lbl" style="margin-top:16px">Select a team — then hit Start</div>
     <div class="team-grid" id="team-grid"></div>
-    <button class="start-btn" id="start-btn" disabled onclick="goMeasure()">🎤 Start Recording</button>
+
+    <div class="settings-bar">
+      <div class="setting-field">
+        <label for="time-input">⏱ Recording time</label>
+        <input type="number" id="time-input" value="5" min="3" max="60">
+        <span>seconds (3 – 60)</span>
+      </div>
+    </div>
+
+    <button class="start-btn" id="start-btn" disabled onclick="goMeasure()">🎙️ Start Recording</button>
   </div>
 </div>
 
 <!-- ══ MEASURE SCREEN ══ -->
-<div class="screen" id="measure-screen">
-  <div class="measure-wrap">
-    <div class="curr-team-card">
-      <img class="curr-team-logo" id="curr-logo" src="" alt="">
-      <div class="curr-team-name" id="curr-name">Team</div>
+<div class="screen" id="measure-screen" style="position:relative">
+
+  <!-- Countdown overlay -->
+  <div class="countdown-ov" id="cd-ov">
+    <div class="cd-team" id="cd-team-lbl">Get Ready…</div>
+    <div class="cd-num" id="cd-num">3</div>
+  </div>
+
+  <!-- Team strip -->
+  <div class="team-strip" id="team-strip"></div>
+
+  <!-- Main layout: VU | center | history -->
+  <div class="meas-body">
+
+    <!-- VU Bar column -->
+    <div class="vu-col">
+      <canvas id="vu-canvas"></canvas>
+      <div class="vu-cur-db" id="vu-cur-db" style="color:var(--teal)">0</div>
+      <div class="vu-unit">dB Level</div>
     </div>
 
-    <!-- Countdown -->
-    <div class="countdown-wrap" id="countdown-wrap">
-      <div class="countdown-num" id="countdown-num">3</div>
-    </div>
+    <!-- Center column -->
+    <div class="center-col">
 
-    <!-- Live meter (hidden until measuring) -->
-    <div id="meter-section" style="display:none;width:100%;flex-direction:column;align-items:center;gap:14px">
-      <div class="meter-wrap">
-        <div class="meter-svg-wrap">
-          <svg viewBox="0 0 280 160" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="mGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%"   stop-color="#2DD4BF"/>
-                <stop offset="50%"  stop-color="#F5C842"/>
-                <stop offset="75%"  stop-color="#FF8C42"/>
-                <stop offset="100%" stop-color="#FB7185"/>
-              </linearGradient>
-            </defs>
-            <!-- Background arc -->
-            <path d="M 20 150 A 120 120 0 0 1 260 150"
-              stroke="#1a1f4a" stroke-width="22" fill="none" stroke-linecap="round"/>
-            <!-- Foreground arc -->
-            <path id="meter-arc" d="M 20 150 A 120 120 0 0 1 260 150"
-              stroke="url(#mGrad)" stroke-width="22" fill="none" stroke-linecap="round"
-              stroke-dasharray="0 377" style="transition:stroke-dasharray .08s linear"/>
-            <!-- Peak tick -->
-            <line id="peak-tick" x1="140" y1="32" x2="140" y2="18" stroke="#F5C842" stroke-width="3" stroke-linecap="round" style="display:none"/>
-          </svg>
+      <div class="stat-row">
+        <div class="stat-card">
+          <div class="stat-val" id="stat-min">—</div>
+          <div class="stat-lbl">Min</div>
         </div>
-        <div class="db-big" id="db-big" style="color:var(--teal)">0</div>
-        <div class="db-label">dB Level</div>
+        <div class="stat-card">
+          <div class="stat-val" id="stat-avg">—</div>
+          <div class="stat-lbl">Avg</div>
+        </div>
+        <div class="stat-card gold-card">
+          <div class="stat-val" id="stat-max">—</div>
+          <div class="stat-lbl">Peak</div>
+        </div>
       </div>
 
-      <div class="pulse-bars" id="pulse-bars"></div>
-
-      <div class="peak-row">
-        Peak this round: <span class="peak-val" id="peak-val">0</span>
+      <div class="freq-wrap">
+        <div class="freq-title">⬛ Frequency Spectrum</div>
+        <canvas id="freq-canvas"></canvas>
       </div>
+
+      <div class="timer-stop-row">
+        <div class="timer-pill">
+          <div class="timer-track" id="timer-track" style="width:100%"></div>
+          <div style="flex:1">
+            <div class="timer-time" id="timer-time">5.0</div>
+            <div class="timer-lbl">Seconds left</div>
+          </div>
+        </div>
+        <button class="stop-btn" onclick="finishRound()">⏹ Stop</button>
+      </div>
+
     </div>
 
-    <!-- Controls row -->
-    <div class="meas-controls">
-      <div class="timer-wrap" id="timer-wrap" style="visibility:hidden">
-        <svg class="timer-svg" viewBox="0 0 80 80">
-          <circle cx="40" cy="40" r="34" fill="none" stroke="#1a1f4a" stroke-width="6"/>
-          <circle id="timer-arc" cx="40" cy="40" r="34" fill="none"
-            stroke="var(--gold)" stroke-width="6" stroke-linecap="round"
-            stroke-dasharray="213.6 213.6" stroke-dashoffset="0"
-            transform="rotate(-90 40 40)" style="transition:stroke-dashoffset .2s linear"/>
-        </svg>
-        <div class="timer-num-lbl" id="timer-num">5</div>
+    <!-- History chart column -->
+    <div class="hist-col">
+      <div class="hist-title">
+        <span>📈 History</span>
+        <span id="hist-range-lbl" style="font-weight:700;color:var(--teal)">Live</span>
       </div>
-
-      <button class="mic-btn" id="mic-btn" onclick="toggleMic()">🎙️</button>
-
-      <button class="btn-ghost" style="border-radius:10px;padding:10px 16px;font-size:.8rem" onclick="goSetup()">✕ Exit</button>
+      <canvas id="hist-canvas"></canvas>
     </div>
+
   </div>
 </div>
 
 <!-- ══ WINNER OVERLAY ══ -->
-<div class="overlay" id="win-ov">
+<div class="win-ov" id="win-ov">
   <canvas id="win-confetti"></canvas>
-  <div class="win-inner" id="win-inner"></div>
+  <div class="win-card" id="win-card"></div>
 </div>
 
 <script>
@@ -269,340 +343,526 @@ const TEAMS = [
   {name:'Chat Cappi Tea', logo:'team4.png', color:'#FB7185'}
 ];
 
-const DURATION = 5; // seconds per round
-const ARC_LEN  = 377; // π * 120 (semicircle path length)
+// ── State ──
+let peaks        = [null, null, null, null];
+let selected     = null;
+let timeLimitSecs = 5;
 
-let peaks       = [null, null, null, null]; // peak dB per team
-let selected    = null;  // currently selected team index
-let audioCtx    = null;
-let analyser    = null;
-let micStream   = null;
-let rafId       = null;
-let timerInt    = null;
-let timeLeft    = DURATION;
-let roundPeak   = 0;
+let audioCtx = null, analyser = null, micStream = null;
+let rafId = null, timerInt = null;
 let isRecording = false;
+let timeLeft = 5;
+let roundPeak = 0;
+let statMin = null, statSum = 0, statCount = 0;
+let vuPeak = 0, vuPeakTimer = 0;
 
-// ── Confetti state ──
-let cfFrame = null, cfParticles = [];
+const HIST_RATE_MS = 80;
+let histBuf = [], lastHistMs = 0, roundStartMs = 0;
 
-// ── Pulse bars ──
-const NUM_BARS = 18;
+let vuCanvas, vuCtx, freqCanvas, freqCtx, histCanvas, histCtx;
+const DPR = () => window.devicePixelRatio || 1;
 
-// ── Setup screen ──
-function renderSetup(){
-  const g = document.getElementById('team-grid');
-  g.innerHTML = TEAMS.map((t,i) => {
-    const done  = peaks[i] !== null;
-    const isSel = i === selected;
-    return `<div class="team-tile${isSel?' selected':''}${done?' done':''}"
-      onclick="selectTeam(${i})">
+// ── Setup ──
+function renderSetup() {
+  document.getElementById('team-grid').innerHTML = TEAMS.map((t, i) => {
+    const done = peaks[i] !== null, sel = i === selected;
+    return `<div class="team-tile${sel?' selected':''}${done?' done':''}" onclick="selectTeam(${i})">
       <img class="tile-logo" src="${t.logo}" alt="" onerror="this.style.display='none'">
       <div class="tile-name">${t.name}</div>
-      ${done
-        ? `<div class="tile-peak">${peaks[i].toFixed(1)}</div>`
-        : `<div class="tile-peak no-score">Not played</div>`}
+      ${done ? `<div class="tile-peak">${peaks[i].toFixed(1)} <span style="font-size:.55rem;color:var(--text3)">dB</span></div>`
+             : `<div class="tile-peak empty">Not played yet</div>`}
     </div>`;
   }).join('');
-  const btn = document.getElementById('start-btn');
-  btn.disabled = selected === null || peaks[selected] !== null;
+  document.getElementById('start-btn').disabled = selected === null || peaks[selected] !== null;
 }
 
-function selectTeam(i){
-  if(peaks[i] !== null) return;
-  selected = i;
-  renderSetup();
+function selectTeam(i) {
+  if (peaks[i] !== null) return;
+  selected = i; renderSetup();
 }
 
-// ── Init pulse bars ──
-function initPulseBars(){
-  const c = document.getElementById('pulse-bars');
-  c.innerHTML = Array.from({length:NUM_BARS}, () =>
-    `<div class="pulse-bar" style="height:4px;background:var(--teal)"></div>`
-  ).join('');
-}
-
-// ── Switch screens ──
-function show(id){
+function show(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
 
-function goSetup(){
-  stopRecording();
-  show('setup-screen');
-  renderSetup();
+function goSetup() {
+  stopAll(); show('setup-screen'); renderSetup();
 }
 
-async function goMeasure(){
-  if(selected === null) return;
-  const t = TEAMS[selected];
-  document.getElementById('curr-logo').src = t.logo;
-  document.getElementById('curr-name').textContent = t.name;
-  document.getElementById('curr-logo').style.border = `2px solid ${t.color}`;
+async function goMeasure() {
+  if (selected === null) return;
+  timeLimitSecs = Math.max(3, Math.min(60, parseInt(document.getElementById('time-input').value, 10) || 5));
+  timeLeft = timeLimitSecs;
+
+  renderTeamStrip();
   show('measure-screen');
-  // Reset UI
-  document.getElementById('countdown-wrap').style.display = 'flex';
-  document.getElementById('meter-section').style.display = 'none';
-  document.getElementById('timer-wrap').style.visibility = 'hidden';
-  document.getElementById('mic-btn').className = 'mic-btn';
-  document.getElementById('mic-btn').textContent = '🎙️';
-  document.getElementById('db-big').textContent = '0';
-  document.getElementById('peak-val').textContent = '0';
-  roundPeak = 0;
-  isRecording = false;
-  updateMeterArc(0);
-  initPulseBars();
-  // Countdown 3-2-1
-  await countdown();
-  // Show meter, start mic
-  document.getElementById('countdown-wrap').style.display = 'none';
-  document.getElementById('meter-section').style.display = 'flex';
-  document.getElementById('timer-wrap').style.visibility = 'visible';
-  startRecording();
+  initCanvases();
+
+  // Countdown
+  const cdOv = document.getElementById('cd-ov');
+  const cdNum = document.getElementById('cd-num');
+  cdOv.classList.remove('hidden');
+  document.getElementById('cd-team-lbl').textContent = TEAMS[selected].name + ' — Get Ready!';
+  for (let n = 3; n >= 1; n--) { cdNum.textContent = n; await sleep(850); }
+  cdNum.textContent = 'GO!';
+  await sleep(450);
+  cdOv.classList.add('hidden');
+
+  // Reset stats
+  roundPeak = 0; statMin = null; statSum = 0; statCount = 0;
+  histBuf = []; vuPeak = 0; vuPeakTimer = 0; lastHistMs = 0;
+  updateStats();
+  document.getElementById('timer-track').style.width = '100%';
+  document.getElementById('timer-time').textContent = timeLimitSecs.toFixed(1);
+
+  await startRecording();
 }
 
-async function countdown(){
-  const el = document.getElementById('countdown-num');
-  for(let n = 3; n >= 1; n--){
-    el.textContent = n;
-    await sleep(900);
-  }
-  el.textContent = 'GO!';
-  await sleep(500);
+function renderTeamStrip() {
+  document.getElementById('team-strip').innerHTML = TEAMS.map((t, i) => {
+    const isActive = i === selected, isDone = peaks[i] !== null;
+    return `<div class="strip-tile${isActive?' active':''}${isDone&&!isActive?' done-t':''}">
+      <img class="strip-logo" src="${t.logo}" alt="" onerror="this.style.display='none'">
+      <div class="strip-info">
+        <div class="strip-name">${t.name}</div>
+        ${isDone ? `<div class="strip-score">${peaks[i].toFixed(1)} dB</div>`
+                 : isActive ? `<div class="strip-score" style="color:var(--red)">● REC</div>`
+                            : `<div class="strip-score pending">waiting</div>`}
+      </div>
+    </div>`;
+  }).join('');
 }
 
-function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+// ── Canvas ──
+function initCanvases() {
+  vuCanvas   = document.getElementById('vu-canvas');
+  freqCanvas = document.getElementById('freq-canvas');
+  histCanvas = document.getElementById('hist-canvas');
+  vuCtx      = vuCanvas.getContext('2d');
+  freqCtx    = freqCanvas.getContext('2d');
+  histCtx    = histCanvas.getContext('2d');
+  sizeCanvases();
+}
 
-// ── Recording ──
-async function startRecording(){
-  try{
-    micStream = await navigator.mediaDevices.getUserMedia({audio:true, video:false});
-  } catch(e){
-    alert('Microphone access denied. Please allow mic and try again.');
-    goSetup();
-    return;
+function sizeCanvases() {
+  const dpr = DPR();
+  [vuCanvas, freqCanvas, histCanvas].forEach(cv => {
+    if (!cv) return;
+    const r = cv.getBoundingClientRect();
+    if (!r.width || !r.height) return;
+    const nw = Math.round(r.width * dpr), nh = Math.round(r.height * dpr);
+    if (cv.width !== nw || cv.height !== nh) {
+      cv.width = nw; cv.height = nh;
+    }
+  });
+}
+
+// ── Audio ──
+async function startRecording() {
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({audio: true, video: false});
+  } catch(e) {
+    alert('Microphone access denied. Please allow the mic and try again.');
+    goSetup(); return;
   }
   audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   const src = audioCtx.createMediaStreamSource(micStream);
   analyser = audioCtx.createAnalyser();
   analyser.fftSize = 2048;
+  analyser.smoothingTimeConstant = 0.75;
   src.connect(analyser);
 
   isRecording = true;
-  roundPeak = 0;
-  timeLeft = DURATION;
-  document.getElementById('mic-btn').className = 'mic-btn recording';
-  document.getElementById('mic-btn').textContent = '⏹';
-
-  updateTimerRing();
-  timerInt = setInterval(tickTimer, 200);
-  rafId = requestAnimationFrame(meterLoop);
+  roundStartMs = performance.now();
+  timerInt = setInterval(tickTimer, 100);
+  rafId = requestAnimationFrame(renderFrame);
 }
 
-function stopRecording(){
+function stopAll() {
   isRecording = false;
-  if(rafId){ cancelAnimationFrame(rafId); rafId = null; }
-  if(timerInt){ clearInterval(timerInt); timerInt = null; }
-  if(micStream){ micStream.getTracks().forEach(t => t.stop()); micStream = null; }
-  if(audioCtx){ audioCtx.close().catch(()=>{}); audioCtx = null; }
+  if (rafId)    { cancelAnimationFrame(rafId); rafId = null; }
+  if (timerInt) { clearInterval(timerInt); timerInt = null; }
+  if (micStream){ micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+  if (audioCtx) { audioCtx.close().catch(()=>{}); audioCtx = null; }
   analyser = null;
 }
 
-function toggleMic(){
-  if(isRecording) finishRound();
+function tickTimer() {
+  timeLeft -= 0.1;
+  if (timeLeft <= 0) { timeLeft = 0; finishRound(); return; }
+  const pct = (timeLeft / timeLimitSecs) * 100;
+  const track = document.getElementById('timer-track');
+  track.style.width = pct + '%';
+  track.style.background = pct > 40 ? 'var(--gold)' : pct > 20 ? 'var(--orange)' : 'var(--red)';
+  document.getElementById('timer-time').textContent = timeLeft.toFixed(1);
 }
 
-function tickTimer(){
-  timeLeft -= 0.2;
-  if(timeLeft <= 0){ timeLeft = 0; finishRound(); return; }
-  updateTimerRing();
-  document.getElementById('timer-num').textContent = Math.ceil(timeLeft);
+// ── Render loop ──
+function renderFrame() {
+  if (!analyser) return;
+
+  const level = getRMSLevel();
+
+  if (statMin === null || level < statMin) statMin = level;
+  if (level > roundPeak) { roundPeak = level; vuPeakTimer = 90; }
+  statSum += level; statCount++;
+  if (vuPeakTimer > 0) vuPeakTimer--;
+  else if (vuPeak > 0) vuPeak = Math.max(0, vuPeak - 0.25);
+  if (level > vuPeak) vuPeak = level;
+
+  const now = performance.now();
+  if (now - lastHistMs >= HIST_RATE_MS) {
+    histBuf.push({t: now - roundStartMs, level});
+    lastHistMs = now;
+  }
+
+  updateStats();
+  const dbEl = document.getElementById('vu-cur-db');
+  dbEl.textContent = level.toFixed(1);
+  dbEl.style.color = levelColor(level);
+
+  sizeCanvases();
+  drawVU(level, vuPeak);
+  drawFreq();
+  drawHist();
+
+  if (isRecording) rafId = requestAnimationFrame(renderFrame);
 }
 
-function updateTimerRing(){
-  const pct = timeLeft / DURATION;
-  const circ = 213.6;
-  document.getElementById('timer-arc').style.strokeDashoffset = circ * (1 - pct);
-  const hue = pct > .5 ? 'var(--gold)' : pct > .25 ? 'var(--orange)' : 'var(--red)';
-  document.getElementById('timer-arc').style.stroke = hue;
-}
-
-function meterLoop(){
-  if(!analyser){ return; }
+function getRMSLevel() {
   const data = new Float32Array(analyser.fftSize);
   analyser.getFloatTimeDomainData(data);
   let sum = 0;
-  for(let i = 0; i < data.length; i++) sum += data[i] * data[i];
+  for (let i = 0; i < data.length; i++) sum += data[i] * data[i];
   const rms = Math.sqrt(sum / data.length);
-  const dbFS = rms > 0 ? 20 * Math.log10(rms) : -100;
-  const level = Math.max(0, Math.min(100, dbFS + 100)); // 0-100
-
-  if(level > roundPeak) roundPeak = level;
-
-  // Update display
-  const dbEl = document.getElementById('db-big');
-  dbEl.textContent = level.toFixed(1);
-  dbEl.style.color = levelColor(level);
-  document.getElementById('peak-val').textContent = roundPeak.toFixed(1);
-  updateMeterArc(level);
-  updatePulseBars(data);
-
-  if(isRecording) rafId = requestAnimationFrame(meterLoop);
+  return rms > 0 ? Math.max(0, Math.min(100, 20 * Math.log10(rms) + 100)) : 0;
 }
 
-function levelColor(l){
-  if(l < 40) return 'var(--teal)';
-  if(l < 65) return 'var(--gold)';
-  if(l < 82) return 'var(--orange)';
-  return 'var(--red)';
+function updateStats() {
+  const f = v => (v !== null && v !== undefined && isFinite(v)) ? v.toFixed(1) : '—';
+  document.getElementById('stat-min').textContent = f(statMin);
+  document.getElementById('stat-avg').textContent = statCount > 0 ? f(statSum / statCount) : '—';
+  document.getElementById('stat-max').textContent = f(roundPeak);
 }
 
-function updateMeterArc(level){
-  const dash = (level / 100) * ARC_LEN;
-  document.getElementById('meter-arc').style.strokeDasharray = `${dash} ${ARC_LEN}`;
+function levelColor(l) {
+  if (l < 60) return '#2DD4BF';
+  if (l < 75) return '#F5C842';
+  if (l < 85) return '#FF8C42';
+  return '#FB7185';
 }
 
-function updatePulseBars(data){
-  const bars = document.querySelectorAll('.pulse-bar');
-  const step = Math.floor(data.length / NUM_BARS);
-  bars.forEach((b, i) => {
-    const v = Math.abs(data[i * step] || 0);
-    const h = Math.max(4, Math.min(50, v * 200));
-    b.style.height = h + 'px';
-    b.style.background = levelColor(h * 2);
+// ── VU Bar ──
+function drawVU(level, peak) {
+  if (!vuCtx) return;
+  const dpr = DPR();
+  const W = vuCanvas.width / dpr, H = vuCanvas.height / dpr;
+  const ctx = vuCtx;
+
+  // Reset transform
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+
+  const barW = Math.floor(W * 0.46);
+  const lX   = barW + 3;
+
+  // Bar background
+  ctx.fillStyle = '#08091f';
+  ctx.fillRect(0, 0, barW, H);
+
+  // Gradient fill
+  const fillH = Math.round((level / 100) * H);
+  if (fillH > 0) {
+    const g = ctx.createLinearGradient(0, H, 0, 0);
+    g.addColorStop(0,    '#2DD4BF');
+    g.addColorStop(0.58, '#2DD4BF');
+    g.addColorStop(0.60, '#F5C842');
+    g.addColorStop(0.73, '#F5C842');
+    g.addColorStop(0.75, '#FF8C42');
+    g.addColorStop(0.84, '#FF8C42');
+    g.addColorStop(0.85, '#FB7185');
+    g.addColorStop(1,    '#FB7185');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, H - fillH, barW, fillH);
+  }
+
+  // Segment dividers
+  ctx.fillStyle = 'rgba(7,9,28,.5)';
+  for (let i = 5; i < 100; i += 5) {
+    const y = H - Math.round((i / 100) * H);
+    ctx.fillRect(0, y, barW, i % 10 === 0 ? 2 : 1);
+  }
+
+  // Peak hold marker
+  if (peak > 1) {
+    const py = H - Math.round((peak / 100) * H);
+    ctx.shadowColor = '#F5C842';
+    ctx.shadowBlur = 7;
+    ctx.fillStyle = '#F5C842';
+    ctx.fillRect(0, py - 2, barW, 3);
+    ctx.shadowBlur = 0;
+  }
+
+  // Scale labels + ticks
+  const fs = Math.max(8, Math.round(W * 0.15));
+  ctx.font = `${fs}px 'Consolas', monospace`;
+  ctx.textAlign = 'left';
+  for (let l = 0; l <= 100; l += 10) {
+    const y = H - Math.round((l / 100) * H);
+    const col = l >= 85 ? '#FB7185' : l >= 75 ? '#FF8C42' : l >= 60 ? '#F5C842' : 'rgba(240,240,255,.32)';
+    ctx.fillStyle = col;
+    ctx.fillRect(lX, y - 1, l % 20 === 0 ? 6 : 3, 2);
+    if (l % 20 === 0) {
+      ctx.fillStyle = 'rgba(240,240,255,.45)';
+      ctx.fillText(String(l), lX + 9, y + Math.round(fs * 0.38));
+    }
+  }
+}
+
+// ── Frequency Spectrum ──
+function drawFreq() {
+  if (!freqCtx || !analyser) return;
+  const dpr = DPR();
+  const W = freqCanvas.width / dpr, H = freqCanvas.height / dpr;
+  const ctx = freqCtx;
+
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+
+  const freqData = new Uint8Array(analyser.frequencyBinCount);
+  analyser.getByteFrequencyData(freqData);
+
+  const NUM = 48, gap = 2;
+  const barW = Math.max(2, (W - gap * (NUM - 1)) / NUM);
+  const nyquist = audioCtx.sampleRate / 2;
+  const minLog = Math.log10(60), maxLog = Math.log10(nyquist);
+  const labelH = 13, chartH = H - labelH;
+
+  for (let i = 0; i < NUM; i++) {
+    const f1 = Math.pow(10, minLog + (i / NUM) * (maxLog - minLog));
+    const f2 = Math.pow(10, minLog + ((i+1) / NUM) * (maxLog - minLog));
+    const b1 = Math.max(0, Math.floor(f1 / nyquist * freqData.length));
+    const b2 = Math.min(freqData.length - 1, Math.ceil(f2 / nyquist * freqData.length));
+    let sum = 0, cnt = 0;
+    for (let j = b1; j <= b2; j++) { sum += freqData[j]; cnt++; }
+    const v = cnt > 0 ? sum / cnt / 255 : 0;
+    const bH = Math.round(v * chartH * 0.97);
+    const x = Math.round(i * (barW + gap));
+    const t = i / NUM;
+    const col = t < 0.22 ? '#FF8C42' : t < 0.52 ? '#F5C842' : '#2DD4BF';
+
+    ctx.fillStyle = 'rgba(255,255,255,.04)';
+    ctx.fillRect(x, 0, barW, chartH);
+
+    if (bH > 0) {
+      ctx.shadowColor = col;
+      ctx.shadowBlur = bH > chartH * 0.55 ? 8 : 3;
+      ctx.fillStyle = col;
+      ctx.fillRect(x, chartH - bH, barW, bH);
+      ctx.shadowBlur = 0;
+    }
+  }
+
+  ctx.fillStyle = 'rgba(240,240,255,.28)';
+  ctx.font = '9px sans-serif';
+  ctx.textAlign = 'left';   ctx.fillText('Low / Bass', 2, H - 1);
+  ctx.textAlign = 'center'; ctx.fillText('Mid / Voice', W/2, H - 1);
+  ctx.textAlign = 'right';  ctx.fillText('High / Treble', W - 2, H - 1);
+}
+
+// ── History Chart ──
+function drawHist() {
+  if (!histCtx) return;
+  const dpr = DPR();
+  const W = histCanvas.width / dpr, H = histCanvas.height / dpr;
+  const ctx = histCtx;
+
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+
+  const PL = 34, PR = 8, PT = 10, PB = 16;
+  const cW = W - PL - PR, cH = H - PT - PB;
+
+  // Y grid + labels
+  ctx.font = '9px Consolas, monospace';
+  ctx.textAlign = 'right';
+  [0, 20, 40, 60, 80, 100].forEach(l => {
+    const y = PT + cH - (l / 100) * cH;
+    ctx.strokeStyle = 'rgba(255,255,255,.06)';
+    ctx.lineWidth = 1; ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(PL, y); ctx.lineTo(W - PR, y); ctx.stroke();
+    ctx.fillStyle = 'rgba(240,240,255,.28)';
+    ctx.fillText(l, PL - 3, y + 3);
   });
+
+  // Reference lines
+  [[75,'#FF8C42','Warning'],[90,'#FB7185','Danger']].forEach(([l, col, lbl]) => {
+    const y = PT + cH - (l / 100) * cH;
+    ctx.strokeStyle = col; ctx.setLineDash([5,4]); ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(PL, y); ctx.lineTo(W - PR, y); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = col; ctx.textAlign = 'right';
+    ctx.fillText(lbl, W - PR - 2, y - 3);
+  });
+
+  if (histBuf.length < 2) {
+    document.getElementById('hist-range-lbl').textContent = 'Live';
+    return;
+  }
+
+  const dispMs = timeLimitSecs * 1000;
+  const latestT = histBuf[histBuf.length - 1].t;
+  const startT  = Math.max(0, latestT - dispMs);
+  document.getElementById('hist-range-lbl').textContent = (latestT / 1000).toFixed(1) + 's';
+
+  const pts = histBuf
+    .filter(p => p.t >= startT)
+    .map(p => ({
+      x: PL + ((p.t - startT) / dispMs) * cW,
+      y: PT + cH - (p.level / 100) * cH
+    }));
+
+  if (pts.length < 2) return;
+
+  // Smooth curve helper
+  function curve(arr) {
+    ctx.moveTo(arr[0].x, arr[0].y);
+    for (let i = 1; i < arr.length - 1; i++) {
+      const mx = (arr[i].x + arr[i+1].x) / 2;
+      const my = (arr[i].y + arr[i+1].y) / 2;
+      ctx.quadraticCurveTo(arr[i].x, arr[i].y, mx, my);
+    }
+    ctx.lineTo(arr[arr.length-1].x, arr[arr.length-1].y);
+  }
+
+  // Filled area
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, PT + cH);
+  curve(pts);
+  ctx.lineTo(pts[pts.length-1].x, PT + cH);
+  ctx.closePath();
+  const aG = ctx.createLinearGradient(0, PT, 0, PT + cH);
+  aG.addColorStop(0, 'rgba(45,212,191,.5)');
+  aG.addColorStop(1, 'rgba(45,212,191,.03)');
+  ctx.fillStyle = aG; ctx.fill();
+
+  // Line
+  ctx.beginPath(); curve(pts);
+  ctx.strokeStyle = '#2DD4BF';
+  ctx.lineWidth = 2;
+  ctx.shadowColor = '#2DD4BF'; ctx.shadowBlur = 5;
+  ctx.stroke(); ctx.shadowBlur = 0;
+
+  // X labels
+  ctx.fillStyle = 'rgba(240,240,255,.28)';
+  ctx.font = '9px Consolas, monospace';
+  ctx.textAlign = 'center';
+  const step = Math.max(1, Math.round(timeLimitSecs / 6));
+  for (let s = 0; s <= timeLimitSecs; s += step) {
+    ctx.fillText(s + 's', PL + (s / timeLimitSecs) * cW, H - 1);
+  }
 }
 
-function finishRound(){
-  stopRecording();
+// ── Finish Round ──
+function finishRound() {
+  if (!isRecording) return;
+  stopAll();
   peaks[selected] = roundPeak;
 
-  document.getElementById('mic-btn').className = 'mic-btn';
-  document.getElementById('mic-btn').textContent = '🎙️';
-  document.getElementById('timer-wrap').style.visibility = 'hidden';
-  updateMeterArc(roundPeak);
-  document.getElementById('db-big').textContent = roundPeak.toFixed(1);
-  document.getElementById('peak-val').textContent = roundPeak.toFixed(1);
-
   const allDone = peaks.every(p => p !== null);
+  const nextIdx = peaks.findIndex(p => p === null);
+
   setTimeout(() => {
-    if(allDone) showFinalResult();
-    else        showRoundResult();
-  }, 800);
+    if (allDone) showFinalResult();
+    else { selected = nextIdx; goSetup(); }
+  }, 700);
 }
 
-function showRoundResult(){
-  // Quick inline message then back to setup
-  const name = TEAMS[selected].name;
-  const peak = peaks[selected].toFixed(1);
-  // Find next undone team
-  const next = peaks.findIndex(p => p === null);
-  const msg = next !== -1
-    ? `${name} scored ${peak} dB!\n\nNext up: ${TEAMS[next].name}`
-    : `${name} scored ${peak} dB!`;
-  alert(msg); // simple prompt — could be fancier
-  if(next !== -1) selected = next;
-  else selected = null;
-  goSetup();
-}
-
-function showFinalResult(){
-  const maxPeak = Math.max(...peaks);
+// ── Final Results ──
+function showFinalResult() {
+  const maxPeak = Math.max(...peaks.filter(p => p !== null));
   const winIdx  = peaks.indexOf(maxPeak);
-  const winners = peaks.map((p,i) => p === maxPeak ? i : -1).filter(i => i !== -1);
-  const isTie   = winners.length > 1;
+  const w = TEAMS[winIdx];
 
-  const inner = document.getElementById('win-inner');
-  if(isTie){
-    inner.innerHTML = `
-      <div style="display:flex;gap:10px;justify-content:center;margin-bottom:14px">
-        ${winners.map(i => `<img src="${TEAMS[i].logo}" style="width:80px;height:80px;object-fit:contain;border-radius:12px">`).join('')}
-      </div>
-      <div class="win-tag">It's a Tie!</div>
-      <div class="win-name" style="font-size:1.8rem">${winners.map(i => TEAMS[i].name).join(' & ')}</div>
-      <div class="win-peak">${maxPeak.toFixed(1)} dB each</div>
-      ${resultCards()}
-      <div class="overlay-btns">
-        <button class="btn-gold" onclick="resetGame()">Play Again 🔄</button>
-        <button class="btn-ghost" onclick="closeWin()">Close</button>
-      </div>`;
-  } else {
-    const w = TEAMS[winIdx];
-    inner.innerHTML = `
-      <img class="win-logo" src="${w.logo}" alt="">
-      <div class="win-tag" style="color:${w.color}">Winner!</div>
-      <div class="win-name" style="color:${w.color};text-shadow:0 0 50px ${w.color}80">${w.name}</div>
-      <div class="win-peak">${maxPeak.toFixed(1)} dB</div>
-      ${resultCards()}
-      <div class="overlay-btns">
-        <button class="btn-gold" onclick="resetGame()">Play Again 🔄</button>
-        <button class="btn-ghost" onclick="closeWin()">Close</button>
-      </div>`;
-  }
+  const sorted = peaks.map((p,i) => ({p,i})).sort((a,b) => b.p - a.p);
+  const cards = sorted.map(({p,i}) => `
+    <div class="res-card${p===maxPeak?' winner-card':''}">
+      <img class="res-logo" src="${TEAMS[i].logo}" alt="" onerror="this.style.display='none'">
+      <div class="res-name">${TEAMS[i].name}</div>
+      <div class="res-score" style="color:${p===maxPeak?'var(--gold)':TEAMS[i].color}">${p!==null?p.toFixed(1):'—'}</div>
+      <div class="res-score-lbl">dB Level</div>
+    </div>`).join('');
+
+  document.getElementById('win-card').innerHTML = `
+    <img class="win-logo" src="${w.logo}" alt="" onerror="this.style.display='none'" style="border:2px solid ${w.color}">
+    <div class="win-tag">Loudest Team!</div>
+    <div class="win-name" style="color:${w.color};text-shadow:0 0 40px ${w.color}80">${w.name}</div>
+    <div class="win-peak">${maxPeak.toFixed(1)} dB Level</div>
+    <div class="results-grid">${cards}</div>
+    <button class="sb-push-btn" onclick="pushToScoreboard()">📊 Send to Main Scoreboard</button>
+    <div class="win-btns">
+      <button class="btn-gold" onclick="resetGame()">Play Again 🔄</button>
+      <button class="btn-ghost" onclick="closeWin()">Close</button>
+    </div>`;
 
   document.getElementById('win-ov').classList.add('open');
   startConfetti();
 }
 
-function resultCards(){
-  const sorted = [...peaks.map((p,i)=>({p,i}))].sort((a,b)=>b.p-a.p);
-  const max = Math.max(...peaks);
-  return `<div class="results-grid">
-    ${sorted.map(({p,i}) => `
-      <div class="res-card${p===max?' winner':''}">
-        <img class="res-logo" src="${TEAMS[i].logo}" alt="" onerror="this.style.display='none'">
-        <div class="res-name">${TEAMS[i].name}</div>
-        <div class="res-score">${p !== null ? p.toFixed(1) : '—'}</div>
-        <div class="res-lbl">dB</div>
-      </div>`).join('')}
-  </div>`;
+function pushToScoreboard() {
+  const TC = ['#FF8C42','#2DD4BF','#A78BFA','#FB7185'];
+  let sb;
+  try { sb = JSON.parse(localStorage.getItem('chennai_outing_sb')); } catch(e) {}
+  if (!sb || !sb.activities) sb = {teams:[], activities:[]};
+  sb.teams = TEAMS.map((t,i) => ({name:t.name, color:TC[i]}));
+  let act = sb.activities.find(a => a.name === 'Decibel');
+  if (!act) { act = {name:'Decibel', scores:[0,0,0,0]}; sb.activities.push(act); }
+  peaks.forEach((p,i) => { act.scores[i] = p !== null ? Math.round(p) : 0; });
+  localStorage.setItem('chennai_outing_sb', JSON.stringify(sb));
+  window.location.href = 'scoreboard.html';
 }
 
-function closeWin(){
+function closeWin() {
   document.getElementById('win-ov').classList.remove('open');
-  stopConfetti();
+  stopConfetti(); goSetup();
 }
-
-function resetGame(){
-  peaks = [null,null,null,null];
-  selected = null;
-  closeWin();
-  goSetup();
-}
+function resetGame() { peaks=[null,null,null,null]; selected=null; closeWin(); }
 
 // ── Confetti ──
-function startConfetti(){
+let cfRaf=null, cfParts=[];
+function startConfetti() {
   const cv = document.getElementById('win-confetti');
   cv.width = window.innerWidth; cv.height = window.innerHeight;
   const ctx = cv.getContext('2d');
   const cols = ['#F5C842','#2DD4BF','#FF8C42','#FB7185','#A78BFA','#fff'];
-  cfParticles = Array.from({length:140}, () => ({
-    x: Math.random()*cv.width, y: -10-Math.random()*200,
-    w: 7+Math.random()*7, h: 3+Math.random()*4,
-    color: cols[Math.floor(Math.random()*cols.length)],
-    speed: 2.5+Math.random()*3, angle: Math.random()*Math.PI*2,
-    spin: (Math.random()-.5)*.18, drift: (Math.random()-.5)*1.8
+  cfParts = Array.from({length:150}, () => ({
+    x:Math.random()*cv.width, y:-20-Math.random()*300,
+    w:6+Math.random()*8, h:3+Math.random()*5,
+    color:cols[Math.floor(Math.random()*cols.length)],
+    speed:2+Math.random()*3.5, angle:Math.random()*Math.PI*2,
+    spin:(Math.random()-.5)*.2, drift:(Math.random()-.5)*2
   }));
   (function frame(){
     ctx.clearRect(0,0,cv.width,cv.height);
-    cfParticles.forEach(p=>{
+    cfParts.forEach(p=>{
       p.y+=p.speed; p.x+=p.drift; p.angle+=p.spin;
       if(p.y>cv.height+20){p.y=-10;p.x=Math.random()*cv.width;}
-      ctx.save();ctx.globalAlpha=.85;ctx.translate(p.x,p.y);ctx.rotate(p.angle);
+      ctx.save();ctx.globalAlpha=.9;ctx.translate(p.x,p.y);ctx.rotate(p.angle);
       ctx.fillStyle=p.color;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();
     });
-    cfFrame=requestAnimationFrame(frame);
+    cfRaf=requestAnimationFrame(frame);
   })();
 }
-
 function stopConfetti(){
-  if(cfFrame){cancelAnimationFrame(cfFrame);cfFrame=null;}
+  if(cfRaf){cancelAnimationFrame(cfRaf);cfRaf=null;}
   const cv=document.getElementById('win-confetti');
   if(cv) cv.getContext('2d').clearRect(0,0,cv.width,cv.height);
 }
 
-// ── Boot ──
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+window.addEventListener('resize', ()=>{ if(isRecording) sizeCanvases(); });
 renderSetup();
 </script>
 </body>
