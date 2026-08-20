@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Countdown Timer — Chennai Off-Work Day Outing</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07091C;--surf:#0D1035;--surf2:#141740;
+  --border:rgba(255,255,255,.1);
+  --gold:#F5C842;--teal:#2DD4BF;--text:#F0F0FF;
+  --text2:rgba(240,240,255,.6);--text3:rgba(240,240,255,.3);
+  --red:#FB7185;--orange:#FF8C42;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif}
+
+/* ── HEADER ── */
+.page-header{
+  display:flex;align-items:center;gap:12px;padding:12px 20px;
+  border-bottom:1px solid var(--border);background:var(--surf);
+}
+.hdr-logo{height:38px;object-fit:contain}
+.hdr-titles .t1{font-size:1.1rem;font-weight:900;color:var(--gold);line-height:1.1}
+.hdr-titles .t2{font-size:.58rem;color:var(--text3);letter-spacing:2.5px;text-transform:uppercase}
+.hdr-nav{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.hdr-nav a{color:var(--text3);font-size:.72rem;text-decoration:none;padding:5px 10px;border:1px solid var(--border);border-radius:8px;transition:color .15s,border-color .15s}
+.hdr-nav a:hover{color:var(--text);border-color:rgba(255,255,255,.3)}
+
+/* ── MAIN ── */
+main{
+  min-height:calc(100vh - 63px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px 16px;gap:24px
+}
+
+/* ── RING ── */
+.ring-wrap{position:relative;width:280px;height:280px;flex-shrink:0}
+.ring-wrap svg{width:100%;height:100%}
+.ring-time{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:2px
+}
+.ring-digits{
+  font-size:3.2rem;font-weight:900;font-variant-numeric:tabular-nums;
+  letter-spacing:-2px;line-height:1;transition:color .4s
+}
+.ring-sub{font-size:.58rem;color:var(--text3);letter-spacing:3px;text-transform:uppercase}
+.ring-done-msg{
+  font-size:.75rem;font-weight:800;color:var(--gold);
+  letter-spacing:1px;display:none;animation:blink 1s step-start infinite
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* ── PRESETS ── */
+.presets{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.preset-btn{
+  background:var(--surf);border:1.5px solid var(--border);border-radius:10px;
+  color:var(--text2);font-size:.8rem;font-weight:700;padding:8px 16px;
+  cursor:pointer;font-family:inherit;transition:border-color .15s,color .15s,background .15s
+}
+.preset-btn:hover{border-color:rgba(255,255,255,.3);color:var(--text)}
+.preset-btn.active-preset{border-color:var(--gold);color:var(--gold);background:rgba(245,200,66,.08)}
+
+/* ── CUSTOM TIME INPUT ── */
+.time-input-row{
+  display:flex;align-items:center;gap:8px;
+  background:var(--surf);border:1px solid var(--border);border-radius:14px;
+  padding:12px 18px
+}
+.time-field{display:flex;flex-direction:column;align-items:center;gap:3px}
+.time-field label{font-size:.52rem;color:var(--text3);letter-spacing:2px;text-transform:uppercase}
+.time-inp{
+  width:72px;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;
+  color:var(--text);font-size:1.6rem;font-weight:900;padding:8px 6px;
+  text-align:center;font-family:inherit;font-variant-numeric:tabular-nums;outline:none
+}
+.time-inp:focus{border-color:var(--gold)}
+.time-sep{font-size:2rem;font-weight:900;color:var(--text3);padding:0 2px;align-self:flex-end;margin-bottom:6px}
+
+.set-btn{
+  background:var(--surf2);border:1.5px solid var(--border);border-radius:10px;
+  color:var(--text2);font-size:.8rem;font-weight:700;padding:10px 16px;
+  cursor:pointer;font-family:inherit;transition:border-color .15s,color .15s;white-space:nowrap
+}
+.set-btn:hover{border-color:rgba(255,255,255,.3);color:var(--text)}
+
+/* ── CONTROLS ── */
+.ctrl-row{display:flex;gap:10px;align-items:center}
+.btn-start{
+  width:120px;height:120px;border-radius:50%;border:2.5px solid var(--gold);
+  background:rgba(245,200,66,.1);color:var(--gold);font-size:1rem;font-weight:900;
+  cursor:pointer;font-family:inherit;transition:background .15s,transform .12s,box-shadow .15s;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  letter-spacing:.5px
+}
+.btn-start:hover{background:rgba(245,200,66,.2);box-shadow:0 0 24px rgba(245,200,66,.2);transform:scale(1.04)}
+.btn-start.running{border-color:var(--red);background:rgba(251,113,133,.1);color:var(--red)}
+.btn-start.running:hover{background:rgba(251,113,133,.2)}
+.btn-start .start-icon{font-size:1.8rem;line-height:1}
+.btn-reset{
+  width:60px;height:60px;border-radius:50%;border:1.5px solid var(--border);
+  background:var(--surf);color:var(--text2);font-size:1.3rem;
+  cursor:pointer;font-family:inherit;transition:border-color .15s,color .15s
+}
+.btn-reset:hover{border-color:rgba(255,255,255,.35);color:var(--text)}
+
+/* ── DONE FLASH ── */
+@keyframes doneFlash{
+  0%,100%{background:var(--bg)}
+  50%{background:rgba(245,200,66,.12)}
+}
+body.done-anim{animation:doneFlash .5s ease 4}
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <img src="logo.png" class="hdr-logo" alt="" onerror="this.style.display='none'">
+  <div class="hdr-titles">
+    <div class="t1">Countdown Timer</div>
+    <div class="t2">Chennai Off-Work Day Outing</div>
+  </div>
+  <nav class="hdr-nav">
+    <a href="index.html">🎮 Hangman</a>
+    <a href="decibel.html">🎙️ Decibel</a>
+    <a href="scoreboard.html">📊 Scoreboard</a>
+  </nav>
+</header>
+
+<main>
+
+  <!-- Quick presets -->
+  <div class="presets" id="presets">
+    <button class="preset-btn" onclick="applyPreset(30)">30 s</button>
+    <button class="preset-btn" onclick="applyPreset(60)">1 min</button>
+    <button class="preset-btn" onclick="applyPreset(120)">2 min</button>
+    <button class="preset-btn active-preset" onclick="applyPreset(180)">3 min</button>
+    <button class="preset-btn" onclick="applyPreset(300)">5 min</button>
+    <button class="preset-btn" onclick="applyPreset(600)">10 min</button>
+  </div>
+
+  <!-- Ring -->
+  <div class="ring-wrap">
+    <svg viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg">
+      <!-- Track -->
+      <circle cx="140" cy="140" r="126"
+        fill="none" stroke="#0D1035" stroke-width="14"/>
+      <!-- Progress arc -->
+      <circle id="ring-arc" cx="140" cy="140" r="126"
+        fill="none" stroke="var(--gold)" stroke-width="14"
+        stroke-linecap="round"
+        stroke-dasharray="791.7 791.7"
+        stroke-dashoffset="0"
+        transform="rotate(-90 140 140)"
+        style="transition:stroke-dashoffset .25s linear,stroke .4s"/>
+    </svg>
+    <div class="ring-time">
+      <div class="ring-digits" id="ring-digits" style="color:var(--gold)">3:00</div>
+      <div class="ring-sub" id="ring-sub">ready</div>
+      <div class="ring-done-msg" id="ring-done-msg">Time's Up!</div>
+    </div>
+  </div>
+
+  <!-- Custom input -->
+  <div class="time-input-row">
+    <div class="time-field">
+      <label>Min</label>
+      <input class="time-inp" id="inp-min" type="number" min="0" max="99" value="3" oninput="clearPreset()">
+    </div>
+    <div class="time-sep">:</div>
+    <div class="time-field">
+      <label>Sec</label>
+      <input class="time-inp" id="inp-sec" type="number" min="0" max="59" value="00" oninput="clearPreset()">
+    </div>
+    <button class="set-btn" onclick="applyCustom()">Set</button>
+  </div>
+
+  <!-- Controls -->
+  <div class="ctrl-row">
+    <button class="btn-reset" onclick="resetTimer()" title="Reset">↺</button>
+    <button class="btn-start" id="btn-start" onclick="toggleTimer()">
+      <span class="start-icon" id="start-icon">▶</span>
+      <span id="start-lbl">START</span>
+    </button>
+    <button class="btn-reset" onclick="addTime(60)" title="+1 min" style="font-size:.65rem;font-weight:800;color:var(--teal);border-color:rgba(45,212,191,.3)">+1m</button>
+  </div>
+
+</main>
+
+<script>
+'use strict';
+
+const CIRC = 2 * Math.PI * 126; // ≈ 791.7
+let totalSecs = 3 * 60;
+let timeLeft  = totalSecs;
+let interval  = null;
+let running   = false;
+let done      = false;
+
+// ── Audio context for beep ──
+let audioCtx = null;
+function beep(freq = 880, dur = 0.18, vol = 0.5) {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const osc  = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+  gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+  osc.start(); osc.stop(audioCtx.currentTime + dur);
+}
+
+function beepDone() {
+  // Three ascending beeps
+  [0, 0.25, 0.5].forEach((t, i) => {
+    setTimeout(() => beep(660 + i * 220, 0.3, 0.6), t * 1000);
+  });
+}
+
+// ── Rendering ──
+function fmtTime(s) {
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  return `${m}:${String(sec).padStart(2,'0')}`;
+}
+
+function ringColor(frac) {
+  if (frac > 0.5) return 'var(--gold)';
+  if (frac > 0.25) return 'var(--orange)';
+  return 'var(--red)';
+}
+
+function render() {
+  const frac = totalSecs > 0 ? timeLeft / totalSecs : 0;
+  const arc  = document.getElementById('ring-arc');
+  const dig  = document.getElementById('ring-digits');
+  const sub  = document.getElementById('ring-sub');
+  const doneMsg = document.getElementById('ring-done-msg');
+
+  // Arc
+  const offset = CIRC * (1 - frac);
+  arc.style.strokeDashoffset = offset;
+  const col = done ? 'var(--teal)' : ringColor(frac);
+  arc.style.stroke = col;
+  dig.style.color  = col;
+
+  // Digits
+  dig.textContent = done ? '0:00' : fmtTime(timeLeft);
+
+  // Sub-label
+  if (done) {
+    sub.style.display  = 'none';
+    doneMsg.style.display = 'block';
+  } else {
+    doneMsg.style.display = 'none';
+    sub.style.display  = '';
+    sub.textContent = running ? 'counting down' : (timeLeft === totalSecs ? 'ready' : 'paused');
+  }
+}
+
+// ── Timer logic ──
+function tick() {
+  if (timeLeft <= 0) {
+    clearInterval(interval); interval = null; running = false;
+    done = true;
+    document.getElementById('btn-start').className = 'btn-start';
+    document.getElementById('start-icon').textContent = '▶';
+    document.getElementById('start-lbl').textContent  = 'START';
+    render();
+    beepDone();
+    document.body.classList.add('done-anim');
+    setTimeout(() => document.body.classList.remove('done-anim'), 2200);
+    return;
+  }
+  timeLeft--;
+  // Tick beep in last 5 seconds
+  if (timeLeft <= 5 && timeLeft > 0) beep(660, 0.08, 0.25);
+  render();
+}
+
+function toggleTimer() {
+  if (done) { resetTimer(); return; }
+  if (running) {
+    // Pause
+    clearInterval(interval); interval = null; running = false;
+    document.getElementById('btn-start').className = 'btn-start';
+    document.getElementById('start-icon').textContent = '▶';
+    document.getElementById('start-lbl').textContent  = 'RESUME';
+  } else {
+    // Start / resume
+    if (timeLeft <= 0) return;
+    running = true;
+    document.getElementById('btn-start').className = 'btn-start running';
+    document.getElementById('start-icon').textContent = '⏸';
+    document.getElementById('start-lbl').textContent  = 'PAUSE';
+    interval = setInterval(tick, 1000);
+  }
+  render();
+}
+
+function resetTimer() {
+  clearInterval(interval); interval = null; running = false; done = false;
+  timeLeft = totalSecs;
+  document.getElementById('btn-start').className = 'btn-start';
+  document.getElementById('start-icon').textContent = '▶';
+  document.getElementById('start-lbl').textContent  = 'START';
+  render();
+}
+
+function addTime(secs) {
+  timeLeft  = Math.max(0, timeLeft + secs);
+  totalSecs = Math.max(totalSecs, timeLeft);
+  if (done) { done = false; }
+  render();
+}
+
+// ── Time setting ──
+function applyPreset(secs) {
+  if (running) return;
+  totalSecs = secs; timeLeft = secs; done = false;
+  document.getElementById('inp-min').value = Math.floor(secs / 60);
+  document.getElementById('inp-sec').value = String(secs % 60).padStart(2,'0');
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active-preset'));
+  event.target.classList.add('active-preset');
+  document.getElementById('btn-start').className = 'btn-start';
+  document.getElementById('start-icon').textContent = '▶';
+  document.getElementById('start-lbl').textContent  = 'START';
+  render();
+}
+
+function clearPreset() {
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active-preset'));
+}
+
+function applyCustom() {
+  if (running) return;
+  const m   = Math.max(0, parseInt(document.getElementById('inp-min').value, 10) || 0);
+  const s   = Math.max(0, Math.min(59, parseInt(document.getElementById('inp-sec').value, 10) || 0));
+  const tot = m * 60 + s;
+  if (tot === 0) return;
+  totalSecs = tot; timeLeft = tot; done = false;
+  clearPreset();
+  document.getElementById('btn-start').className = 'btn-start';
+  document.getElementById('start-icon').textContent = '▶';
+  document.getElementById('start-lbl').textContent  = 'START';
+  render();
+}
+
+// Enter key on inputs applies custom time
+document.getElementById('inp-min').addEventListener('keydown', e => { if (e.key === 'Enter') applyCustom(); });
+document.getElementById('inp-sec').addEventListener('keydown', e => { if (e.key === 'Enter') applyCustom(); });
+// Space / Enter to toggle
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggleTimer(); }
+  if (e.key === 'r' || e.key === 'R') resetTimer();
+});
+
+// Boot
+render();
+</script>
+</body>
+</html>
