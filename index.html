@@ -1249,13 +1249,16 @@ function openMainScoreboard(){
   let sb;
   try{ sb=JSON.parse(localStorage.getItem('chennai_outing_sb')); }catch(e){}
   if(!sb||!sb.activities) sb={teams:[],activities:[]};
-  // Always overwrite teams fully so names + colours always come from hangman
   sb.teams=teams.map((t,i)=>({name:t.name,color:TC[i]}));
-  // Find or create Hangman activity
-  let hact=sb.activities.find(a=>a.name==='Hangman');
+  // Find activity whose name contains "hangman" (case-insensitive), or create "Hangman"
+  let hact=sb.activities.find(a=>a.name.toLowerCase().includes('hangman'));
   if(!hact){ hact={name:'Hangman',scores:[0,0,0,0]}; sb.activities.unshift(hact); }
-  // Write current scores
-  teams.forEach((t,i)=>{ hact.scores[i]=t.score||0; });
+  if(!hact.scores) hact.scores=[0,0,0,0];
+  while(hact.scores.length<4) hact.scores.push(0);
+  // Add 10 points to the team with the highest hangman score
+  const maxScore=Math.max(...teams.map(t=>t.score||0));
+  const winIdx=teams.findIndex(t=>(t.score||0)===maxScore);
+  if(winIdx>=0) hact.scores[winIdx]=(hact.scores[winIdx]||0)+10;
   localStorage.setItem('chennai_outing_sb',JSON.stringify(sb));
   window.location.href='scoreboard.html';
 }

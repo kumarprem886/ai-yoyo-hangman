@@ -318,7 +318,7 @@ function load(){
   }catch(e){}
   return {
     teams:TEAM_DEFAULTS.map((t,i)=>({name:t.name,color:TC[i]})),
-    activities:[{name:'Hangman',scores:[0,0,0,0]}]
+    activities:[]
   };
 }
 
@@ -444,7 +444,6 @@ function addActivity(){
 }
 
 function delActivity(ai){
-  if(state.activities.length<=1){alert('Keep at least one activity.');return;}
   if(!confirm('Remove "'+state.activities[ai].name+'"?')) return;
   state.activities.splice(ai,1);
   save();render();
