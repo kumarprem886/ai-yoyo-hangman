@@ -311,10 +311,19 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe 
           <div class="timer-track" id="timer-track" style="width:100%"></div>
           <div style="flex:1">
             <div class="timer-time" id="timer-time">5.0</div>
-            <div class="timer-lbl">Seconds left</div>
+            <div class="timer-lbl" id="timer-lbl">Seconds left</div>
           </div>
         </div>
-        <button class="stop-btn" onclick="finishRound()">⏹ Stop</button>
+        <button class="stop-btn" id="stop-btn" onclick="finishRound()">⏹ Stop</button>
+      </div>
+
+      <!-- Shown after recording ends -->
+      <div id="done-banner" style="display:none;background:rgba(45,212,191,.1);border:1.5px solid rgba(45,212,191,.4);border-radius:12px;padding:12px 14px;display:none;flex-direction:column;gap:8px">
+        <div style="font-size:.6rem;color:var(--teal);letter-spacing:2px;text-transform:uppercase;font-weight:800">Recording complete</div>
+        <div style="font-size:.85rem;color:var(--text2)">Peak saved for <strong id="done-team-name" style="color:var(--gold)"></strong></div>
+        <button onclick="saveAndContinue()" style="background:var(--gold);color:#07091C;border:none;border-radius:10px;font-weight:900;font-size:.9rem;padding:12px;cursor:pointer;font-family:inherit;width:100%">
+          ✓ Back to Team Selection
+        </button>
       </div>
 
     </div>
@@ -774,8 +783,23 @@ function finishRound() {
   if (!isRecording) return;
   stopAll();
   peaks[selected] = roundPeak;
-  // Always return to setup — winner announced only via "Finish Game" button
-  setTimeout(goSetup, 700);
+
+  // Update timer UI to "done"
+  document.getElementById('timer-track').style.width = '0%';
+  document.getElementById('timer-time').textContent = '0.0';
+  document.getElementById('timer-lbl').textContent = 'Done';
+  document.getElementById('stop-btn').style.display = 'none';
+
+  // Show done banner with save button
+  const banner = document.getElementById('done-banner');
+  document.getElementById('done-team-name').textContent = TEAMS[selected].name;
+  banner.style.display = 'flex';
+}
+
+function saveAndContinue() {
+  document.getElementById('done-banner').style.display = 'none';
+  document.getElementById('stop-btn').style.display = '';
+  goSetup();
 }
 
 // ── Final Results ──
