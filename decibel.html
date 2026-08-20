@@ -48,7 +48,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe 
 }
 .team-tile:hover:not(.done){border-color:rgba(255,255,255,.3)}
 .team-tile.selected{border-color:var(--gold);background:rgba(245,200,66,.06);box-shadow:0 0 20px rgba(245,200,66,.12)}
-.team-tile.done{opacity:.5;cursor:default}
+.team-tile.done{opacity:.65}
 .team-tile.done::after{content:'✓';position:absolute;top:8px;right:10px;color:var(--teal);font-weight:900;font-size:.9rem}
 .tile-logo{width:72px;height:72px;object-fit:contain;border-radius:10px}
 .tile-name{font-size:.7rem;font-weight:700;color:var(--text2);text-align:center}
@@ -254,6 +254,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe 
     </div>
 
     <button class="start-btn" id="start-btn" disabled onclick="goMeasure()">🎙️ Start Recording</button>
+    <button class="start-btn" id="finish-btn" disabled onclick="showFinalResult()"
+      style="margin-top:10px;background:var(--surf);color:var(--gold);border:2px solid rgba(245,200,66,.45)">
+      🏆 Finish Game &amp; Announce Winner
+    </button>
   </div>
 </div>
 
@@ -373,11 +377,12 @@ function renderSetup() {
              : `<div class="tile-peak empty">Not played yet</div>`}
     </div>`;
   }).join('');
-  document.getElementById('start-btn').disabled = selected === null || peaks[selected] !== null;
+  document.getElementById('start-btn').disabled = selected === null;
+  document.getElementById('finish-btn').disabled = peaks.every(p => p === null);
 }
 
 function selectTeam(i) {
-  if (peaks[i] !== null) return;
+  // Always allow switching teams
   selected = i; renderSetup();
 }
 
@@ -769,19 +774,15 @@ function finishRound() {
   if (!isRecording) return;
   stopAll();
   peaks[selected] = roundPeak;
-
-  const allDone = peaks.every(p => p !== null);
-  const nextIdx = peaks.findIndex(p => p === null);
-
-  setTimeout(() => {
-    if (allDone) showFinalResult();
-    else { selected = nextIdx; goSetup(); }
-  }, 700);
+  // Always return to setup — winner announced only via "Finish Game" button
+  setTimeout(goSetup, 700);
 }
 
 // ── Final Results ──
 function showFinalResult() {
-  const maxPeak = Math.max(...peaks.filter(p => p !== null));
+  const played = peaks.filter(p => p !== null);
+  if (played.length === 0) return;
+  const maxPeak = Math.max(...played);
   const winIdx  = peaks.indexOf(maxPeak);
   const w = TEAMS[winIdx];
 
