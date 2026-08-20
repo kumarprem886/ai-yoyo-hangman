@@ -739,9 +739,8 @@ function drawHist() {
 
   if (pts.length < 2) return;
 
-  // Smooth curve helper
-  function curve(arr) {
-    ctx.moveTo(arr[0].x, arr[0].y);
+  // Smooth curve segments — caller must set start position first
+  function curvePath(arr) {
     for (let i = 1; i < arr.length - 1; i++) {
       const mx = (arr[i].x + arr[i+1].x) / 2;
       const my = (arr[i].y + arr[i+1].y) / 2;
@@ -750,10 +749,11 @@ function drawHist() {
     ctx.lineTo(arr[arr.length-1].x, arr[arr.length-1].y);
   }
 
-  // Filled area
+  // Filled area — anchor at baseline, rise to first point, then trace curve
   ctx.beginPath();
-  ctx.moveTo(pts[0].x, PT + cH);
-  curve(pts);
+  ctx.moveTo(pts[0].x, PT + cH);     // baseline of first point
+  ctx.lineTo(pts[0].x, pts[0].y);    // up to first data point
+  curvePath(pts);
   ctx.lineTo(pts[pts.length-1].x, PT + cH);
   ctx.closePath();
   const aG = ctx.createLinearGradient(0, PT, 0, PT + cH);
@@ -762,7 +762,9 @@ function drawHist() {
   ctx.fillStyle = aG; ctx.fill();
 
   // Line
-  ctx.beginPath(); curve(pts);
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  curvePath(pts);
   ctx.strokeStyle = '#2DD4BF';
   ctx.lineWidth = 2;
   ctx.shadowColor = '#2DD4BF'; ctx.shadowBlur = 5;
