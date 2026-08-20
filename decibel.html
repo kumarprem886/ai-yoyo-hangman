@@ -550,7 +550,12 @@ function getRMSLevel() {
   let sum = 0;
   for (let i = 0; i < data.length; i++) sum += data[i] * data[i];
   const rms = Math.sqrt(sum / data.length);
-  return rms > 0 ? Math.max(0, Math.min(100, 20 * Math.log10(rms) + 100)) : 0;
+  if (rms <= 0) return 0;
+  // Power-curve scale: normalise linear dBFS to 0-1, then square it.
+  // This makes the top end hard to reach — a very loud shout (~-10 dBFS)
+  // shows ~81, and only near-clipping input reaches 95+.
+  const normalized = Math.max(0, Math.min(1, (20 * Math.log10(rms) + 100) / 100));
+  return Math.pow(normalized, 2) * 100;
 }
 
 function updateStats() {
@@ -809,25 +814,45 @@ function showFinalResult() {
   const played = peaks.filter(p => p !== null);
   if (played.length === 0) return;
   const maxPeak = Math.max(...played);
-  const winIdx  = peaks.indexOf(maxPeak);
-  const w = TEAMS[winIdx];
+  // All teams that share the top score (within 0.05 dB float tolerance)
+  const winIndices = peaks.map((p,i) => (p !== null && Math.abs(p - maxPeak) < 0.05) ? i : -1).filter(i => i !== -1);
+  const isTie = winIndices.length > 1;
 
-  const sorted = peaks.map((p,i) => ({p,i})).sort((a,b) => b.p - a.p);
+  const sorted = peaks.map((p,i) => ({p,i})).sort((a,b) => (b.p||0) - (a.p||0));
   const cards = sorted.map(({p,i}) => `
-    <div class="res-card${p===maxPeak?' winner-card':''}">
+    <div class="res-card${winIndices.includes(i)?' winner-card':''}">
       <img class="res-logo" src="${TEAMS[i].logo}" alt="" onerror="this.style.display='none'">
       <div class="res-name">${TEAMS[i].name}</div>
-      <div class="res-score" style="color:${p===maxPeak?'var(--gold)':TEAMS[i].color}">${p!==null?p.toFixed(1):'—'}</div>
+      <div class="res-score" style="color:${winIndices.includes(i)?'var(--gold)':TEAMS[i].color}">${p!==null?p.toFixed(1):'—'}</div>
       <div class="res-score-lbl">dB Level</div>
     </div>`).join('');
 
+  const sbLabel = isTie
+    ? `+10 pts each to tied teams`
+    : `+10 pts to ${TEAMS[winIndices[0]].name}`;
+
+  let winnerHtml;
+  if (isTie) {
+    winnerHtml = `
+      <div style="display:flex;justify-content:center;gap:10px;margin-bottom:10px">
+        ${winIndices.map(i=>`<img src="${TEAMS[i].logo}" style="width:72px;height:72px;object-fit:contain;border-radius:12px;border:2px solid var(--gold)" onerror="this.style.display='none'">`).join('')}
+      </div>
+      <div class="win-tag">It's a Tie!</div>
+      <div class="win-name" style="font-size:1.4rem">${winIndices.map(i=>TEAMS[i].name).join(' &amp; ')}</div>
+      <div class="win-peak">${maxPeak.toFixed(1)} dB Level each</div>`;
+  } else {
+    const w = TEAMS[winIndices[0]];
+    winnerHtml = `
+      <img class="win-logo" src="${w.logo}" alt="" onerror="this.style.display='none'" style="border:2px solid ${w.color}">
+      <div class="win-tag">Loudest Team!</div>
+      <div class="win-name" style="color:${w.color};text-shadow:0 0 40px ${w.color}80">${w.name}</div>
+      <div class="win-peak">${maxPeak.toFixed(1)} dB Level</div>`;
+  }
+
   document.getElementById('win-card').innerHTML = `
-    <img class="win-logo" src="${w.logo}" alt="" onerror="this.style.display='none'" style="border:2px solid ${w.color}">
-    <div class="win-tag">Loudest Team!</div>
-    <div class="win-name" style="color:${w.color};text-shadow:0 0 40px ${w.color}80">${w.name}</div>
-    <div class="win-peak">${maxPeak.toFixed(1)} dB Level</div>
+    ${winnerHtml}
     <div class="results-grid">${cards}</div>
-    <button class="sb-push-btn" onclick="pushToScoreboard()">📊 Main Scoreboard &nbsp;·&nbsp; +10 pts to ${w.name}</button>
+    <button class="sb-push-btn" onclick="pushToScoreboard()">📊 Main Scoreboard &nbsp;·&nbsp; ${sbLabel}</button>
     <div class="win-btns">
       <button class="btn-gold" onclick="resetGame()">Play Again 🔄</button>
       <button class="btn-ghost" onclick="closeWin()">Close</button>
@@ -853,12 +878,15 @@ function pushToScoreboard() {
   if (!act.scores) act.scores = [0,0,0,0];
   while (act.scores.length < 4) act.scores.push(0);
 
-  // Add 10 points to the winning team
+  // Add 10 points to every team tied at the top peak
   const played = peaks.filter(p => p !== null);
   if (played.length > 0) {
     const maxPeak = Math.max(...played);
-    const winIdx  = peaks.indexOf(maxPeak);
-    act.scores[winIdx] = (act.scores[winIdx] || 0) + 10;
+    peaks.forEach((p, i) => {
+      if (p !== null && Math.abs(p - maxPeak) < 0.05) {
+        act.scores[i] = (act.scores[i] || 0) + 10;
+      }
+    });
   }
 
   localStorage.setItem('chennai_outing_sb', JSON.stringify(sb));
