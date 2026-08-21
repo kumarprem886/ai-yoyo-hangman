@@ -1315,10 +1315,8 @@ function openMainScoreboard(){
   if(!hact){ hact={name:'Hangman',scores:[0,0,0,0]}; sb.activities.unshift(hact); }
   if(!hact.scores) hact.scores=[0,0,0,0];
   while(hact.scores.length<4) hact.scores.push(0);
-  // Add 10 points to the team with the highest hangman score
-  const maxScore=Math.max(...teams.map(t=>t.score||0));
-  const winIdx=teams.findIndex(t=>(t.score||0)===maxScore);
-  if(winIdx>=0) hact.scores[winIdx]=(hact.scores[winIdx]||0)+10;
+  // Add each team's actual game score to the main scoreboard
+  teams.forEach((t,i)=>{ hact.scores[i]=(hact.scores[i]||0)+(t.score||0); });
   localStorage.setItem('chennai_outing_sb',JSON.stringify(sb));
   window.location.href='scoreboard.html';
 }
